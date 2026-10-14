@@ -5,11 +5,12 @@ import {
   Logger,
   NestInterceptor,
 } from '@nestjs/common';
-import { Observable, from, switchMap } from 'rxjs';
+import { Observable } from 'rxjs';
 import { DataSource, QueryRunner } from 'typeorm';
 
 import type { SecurityContext } from '../../../domain/security-context.interface.js';
 import { RLS_ENTITY_MANAGER_KEY, RLS_VARIABLES } from './rls.constants.js';
+import { RlsContext } from './rls.context.js';
 
 @Injectable()
 export class RlsInterceptor implements NestInterceptor {
@@ -25,7 +26,18 @@ export class RlsInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    return from(this.executeWithRls(request, securityContext, next));
+    return new Observable((subscriber) => {
+      this.executeWithRls(request, securityContext, next)
+        .then((result) => {
+          subscriber.next(result);
+          subscriber.complete();
+        })
+        .catch((error) => subscriber.error(error));
+
+      return () => {
+        // Cleanup handled in executeWithRls finally block
+      };
+    });
   }
 
   private async executeWithRls(
@@ -41,12 +53,14 @@ export class RlsInterceptor implements NestInterceptor {
       await this.setRlsVariables(queryRunner, ctx);
       request[RLS_ENTITY_MANAGER_KEY] = queryRunner.manager;
 
-      const result = await new Promise((resolve, reject) => {
-        next.handle().subscribe({
-          next: (value) => resolve(value),
-          error: (err) => reject(err),
-        });
-      });
+      const result = await RlsContext.run(queryRunner, () =>
+        new Promise((resolve, reject) => {
+          next.handle().subscribe({
+            next: (value) => resolve(value),
+            error: (err) => reject(err),
+          });
+        }),
+      );
 
       await queryRunner.commitTransaction();
       return result;
