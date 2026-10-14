@@ -8,8 +8,11 @@ import {
   DeactivateTenantUseCase,
 } from '../application/use-cases/tenant.use-cases.js';
 import { TenantsController } from './http/tenants.controller.js';
+import { AuthModule } from '../../auth/infrastructure/auth.module.js';
+import { RbacModule } from '../../rbac/infrastructure/rbac.module.js';
 
 @Module({
+  imports: [AuthModule, RbacModule],
   controllers: [TenantsController],
   providers: [
     { provide: TENANT_REPOSITORY_PORT, useClass: PostgresTenantRepository },
@@ -20,4 +23,5 @@ import { TenantsController } from './http/tenants.controller.js';
   ],
   exports: [GetTenantUseCase],
 })
-export class TenantModule { }
+export class TenantModule {}
+

@@ -9,8 +9,11 @@ import {
   DeleteBranchUseCase,
 } from '../application/use-cases/branch.use-cases.js';
 import { BranchesController } from './http/branches.controller.js';
+import { AuthModule } from '../../auth/infrastructure/auth.module.js';
+import { RbacModule } from '../../rbac/infrastructure/rbac.module.js';
 
 @Module({
+  imports: [AuthModule, RbacModule],
   controllers: [BranchesController],
   providers: [
     { provide: BRANCH_REPOSITORY_PORT, useClass: PostgresBranchRepository },
@@ -22,4 +25,5 @@ import { BranchesController } from './http/branches.controller.js';
   ],
   exports: [ListBranchesUseCase, GetBranchUseCase],
 })
-export class BranchModule { }
+export class BranchModule {}
+

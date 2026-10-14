@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import type { SessionCachePort } from '../../domain/ports/session-cache.port.js';
 
 @Injectable()
