@@ -1,5 +1,5 @@
 import type { Role } from '../../../rbac/domain/models/role.enum.js';
-import { DomainException } from '../../../../../shared/domain/domain.exception.js';
+import { DomainException } from '../../../../shared/domain/domain.exception.js';
 
 // ─── Props interface (elimina constructor monstruo) ──────────────────────────
 
