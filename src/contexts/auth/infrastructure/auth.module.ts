@@ -6,11 +6,13 @@ import { TOKEN_SERVICE_PORT } from '../domain/ports/token-service.port.js';
 import { PASSWORD_HASHER_PORT } from '../domain/ports/password-hasher.port.js';
 import { SESSION_CACHE_PORT } from '../domain/ports/session-cache.port.js';
 import { USER_REPOSITORY_PORT } from '../../user/domain/ports/user-repository.port.js';
+import { TENANT_REPOSITORY_PORT } from '../../tenant/domain/ports/tenant-repository.port.js';
 
 import { JwtTokenAdapter } from './adapters/jwt-token.adapter.js';
 import { BcryptHasherAdapter } from './adapters/bcrypt-hasher.adapter.js';
 import { RedisSessionAdapter } from './adapters/redis-session.adapter.js';
 import { PostgresUserRepository } from '../../user/infrastructure/persistence/postgres-user.repository.js';
+import { PostgresTenantRepository } from '../../tenant/infrastructure/persistence/postgres-tenant.repository.js';
 
 import { LoginUseCase } from '../application/use-cases/login.use-case.js';
 import { RefreshTokenUseCase } from '../application/use-cases/refresh-token.use-case.js';
@@ -37,6 +39,7 @@ import { AuthController } from './http/auth.controller.js';
     { provide: PASSWORD_HASHER_PORT, useClass: BcryptHasherAdapter },
     { provide: SESSION_CACHE_PORT, useClass: RedisSessionAdapter },
     { provide: USER_REPOSITORY_PORT, useClass: PostgresUserRepository },
+    { provide: TENANT_REPOSITORY_PORT, useClass: PostgresTenantRepository },
 
     // Use Cases
     LoginUseCase,

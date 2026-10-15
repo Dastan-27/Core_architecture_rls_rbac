@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { USER_REPOSITORY_PORT } from '../../domain/ports/user-repository.port.js';
 import type { UserRepositoryPort, UserFilters, UserWithBranch } from '../../domain/ports/user-repository.port.js';
-import type { User } from '../../domain/models/user.entity.js';
+import { User } from '../../domain/models/user.entity.js';
 import type { Role } from '../../../rbac/domain/models/role.enum.js';
 import {
   UserNotFoundException,
@@ -59,22 +59,18 @@ export class CreateUserUseCase {
       throw new EmailAlreadyRegisteredException(command.email);
     }
 
-    const { User } = await import('../../domain/models/user.entity.js');
-    const user = new User(
-      uuidv4(),
-      command.tenantId,
-      command.branchId,
-      command.documentType,
-      command.documentNumber,
-      command.email,
-      command.passwordHash,
-      command.fullName,
-      command.phone,
-      command.role,
-      true,
-      new Date(),
-      new Date(),
-    );
+    const user = User.create({
+      id: uuidv4(),
+      tenantId: command.tenantId,
+      branchId: command.branchId,
+      documentType: command.documentType,
+      documentNumber: command.documentNumber,
+      email: command.email,
+      passwordHash: command.passwordHash,
+      fullName: command.fullName,
+      phone: command.phone,
+      role: command.role,
+    });
 
     return this.userRepository.save(user);
   }

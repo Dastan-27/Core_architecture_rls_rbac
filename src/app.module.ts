@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { AppConfigModule } from './shared/infrastructure/config/config.module.js';
 import { DatabaseModule } from './shared/infrastructure/persistence/database.module.js';
 import { RlsModule } from './shared/infrastructure/persistence/rls/rls.module.js';
+import { CorrelationIdMiddleware } from './shared/infrastructure/http/middleware/correlation-id.middleware.js';
 
 // Bounded Context Modules
 import { AuthModule } from './contexts/auth/infrastructure/auth.module.js';
@@ -25,4 +26,10 @@ import { UserModule } from './contexts/user/infrastructure/user.module.js';
     UserModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer
+      .apply(CorrelationIdMiddleware)
+      .forRoutes('*');
+  }
+}

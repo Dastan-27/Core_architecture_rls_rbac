@@ -1,18 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { BasePostgresRepository } from '../../../../shared/infrastructure/persistence/base-postgres.repository.js';
 import type { BranchRepositoryPort } from '../../domain/ports/branch-repository.port.js';
 import { Branch } from '../../domain/models/branch.entity.js';
-import { RlsContext } from '../../../../shared/infrastructure/persistence/rls/rls.context.js';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 @Injectable()
-export class PostgresBranchRepository implements BranchRepositoryPort {
-  constructor(private readonly dataSource: DataSource) { }
-
-  private get queryFn(): (sql: string, params?: unknown[]) => Promise<any[]> {
-    const qr = RlsContext.getQueryRunner();
-    return qr ? qr.query.bind(qr) : this.dataSource.query.bind(this.dataSource);
+export class PostgresBranchRepository extends BasePostgresRepository implements BranchRepositoryPort {
+  constructor(dataSource: DataSource) {
+    super(dataSource);
   }
 
   private isUuid(value: string): boolean {

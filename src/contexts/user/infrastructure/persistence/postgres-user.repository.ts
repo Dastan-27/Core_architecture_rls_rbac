@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { BasePostgresRepository } from '../../../../shared/infrastructure/persistence/base-postgres.repository.js';
 import type { UserRepositoryPort, UserFilters, UserWithBranch } from '../../domain/ports/user-repository.port.js';
 import { User } from '../../domain/models/user.entity.js';
 import type { Role } from '../../../rbac/domain/models/role.enum.js';
 import { RlsContext } from '../../../../shared/infrastructure/persistence/rls/rls.context.js';
 
 @Injectable()
-export class PostgresUserRepository implements UserRepositoryPort {
-  constructor(private readonly dataSource: DataSource) {}
-
-  private get queryFn(): (sql: string, params?: unknown[]) => Promise<any[]> {
-    const qr = RlsContext.getQueryRunner();
-    return qr ? qr.query.bind(qr) : this.dataSource.query.bind(this.dataSource);
+export class PostgresUserRepository extends BasePostgresRepository implements UserRepositoryPort {
+  constructor(dataSource: DataSource) {
+    super(dataSource);
   }
 
   /**
@@ -160,20 +158,20 @@ export class PostgresUserRepository implements UserRepositoryPort {
   }
 
   private mapToEntity(row: Record<string, unknown>): User {
-    return new User(
-      row.id as string,
-      row.tenant_id as string,
-      (row.branch_id as string) ?? null,
-      row.document_type as string,
-      row.document_number as string,
-      row.email as string,
-      row.password_hash as string,
-      row.full_name as string,
-      (row.phone as string) ?? null,
-      row.role as Role,
-      row.is_active as boolean,
-      row.created_at as Date,
-      row.updated_at as Date,
-    );
+    return User.create({
+      id: row.id as string,
+      tenantId: row.tenant_id as string,
+      branchId: (row.branch_id as string) ?? null,
+      documentType: row.document_type as string,
+      documentNumber: row.document_number as string,
+      email: row.email as string,
+      passwordHash: row.password_hash as string,
+      fullName: row.full_name as string,
+      phone: (row.phone as string) ?? null,
+      role: row.role as Role,
+      isActive: row.is_active as boolean,
+      createdAt: row.created_at as Date,
+      updatedAt: row.updated_at as Date,
+    });
   }
 }

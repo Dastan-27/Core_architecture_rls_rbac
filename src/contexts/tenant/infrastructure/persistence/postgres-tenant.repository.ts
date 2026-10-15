@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { BasePostgresRepository } from '../../../../shared/infrastructure/persistence/base-postgres.repository.js';
 import type {
   TenantRepositoryPort,
   CreateTenantData,
@@ -7,17 +8,11 @@ import type {
   DeactivateTenantResult,
 } from '../../domain/ports/tenant-repository.port.js';
 import { Tenant } from '../../domain/models/tenant.entity.js';
-import { RlsContext } from '../../../../shared/infrastructure/persistence/rls/rls.context.js';
 
 @Injectable()
-export class PostgresTenantRepository implements TenantRepositoryPort {
-  constructor(private readonly dataSource: DataSource) { }
-
-  private get queryFn(): (sql: string, params?: unknown[]) => Promise<any[]> {
-    const qr = RlsContext.getQueryRunner();
-    return qr
-      ? qr.query.bind(qr)
-      : this.dataSource.query.bind(this.dataSource);
+export class PostgresTenantRepository extends BasePostgresRepository implements TenantRepositoryPort {
+  constructor(dataSource: DataSource) {
+    super(dataSource);
   }
 
   async findById(id: string): Promise<Tenant | null> {

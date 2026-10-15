@@ -2,6 +2,7 @@ import {
   IsString, IsEmail, Matches, IsIn,
   ValidateIf, IsOptional, Length,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateUserDto {
@@ -28,6 +29,10 @@ export class CreateUserDto {
   @IsString()
   @IsIn(['C.C', 'CE', 'PASAPORTE'], {
     message: 'El tipo de documento debe ser C.C, CE o PASAPORTE',
+  })
+  @Transform(({ value }: { value: string }) => {
+    const map: Record<string, string> = { 'C.C': 'CC', 'PASAPORTE': 'PP' };
+    return map[value] ?? value;
   })
   documentType: string;
 

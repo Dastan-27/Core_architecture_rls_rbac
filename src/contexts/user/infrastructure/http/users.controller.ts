@@ -80,18 +80,13 @@ export class UsersController {
       }
     }
 
-    // Mapeo tipo de documento → valor BD
-    let docType = dto.documentType;
-    if (docType === 'C.C') docType = 'CC';
-    else if (docType === 'PASAPORTE') docType = 'PP';
-
     const fullName = `${dto.firstName} ${dto.lastName}`.trim();
     const passwordHash = await this.passwordHasher.hash(dto.password);
 
     return this.createUser.execute({
       tenantId: req.user.tenantId,
       branchId,
-      documentType: docType,
+      documentType: dto.documentType,
       documentNumber: dto.documentNumber,
       email: dto.email,
       passwordHash,
