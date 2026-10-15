@@ -45,6 +45,7 @@ export class LoginUseCase {
     const jti = uuidv4();
     const payload = {
       sub: user.id,
+      userId: user.id,
       jti,
       tenantId: user.tenantId,
       branchId: user.branchId,

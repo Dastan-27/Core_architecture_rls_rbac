@@ -9,14 +9,15 @@ import {
   UpdateUserStatusUseCase,
   ResetPasswordUseCase,
   DeleteUserUseCase,
-  ResolveBranchUseCase,
 } from '../application/use-cases/user.use-cases.js';
 import { UsersController } from './http/users.controller.js';
 import { AuthModule } from '../../auth/infrastructure/auth.module.js';
 import { RbacModule } from '../../rbac/infrastructure/rbac.module.js';
+import { BranchModule } from '../../branch/infrastructure/branch.module.js';
+import { AuditModule } from '../../audit/infrastructure/audit.module.js';
 
 @Module({
-  imports: [AuthModule, RbacModule],
+  imports: [AuthModule, RbacModule, BranchModule, AuditModule],
 
   controllers: [UsersController],
   providers: [
@@ -28,7 +29,6 @@ import { RbacModule } from '../../rbac/infrastructure/rbac.module.js';
     UpdateUserStatusUseCase,
     ResetPasswordUseCase,
     DeleteUserUseCase,
-    ResolveBranchUseCase,
   ],
   exports: [GetUserUseCase, ListUsersUseCase],
 })

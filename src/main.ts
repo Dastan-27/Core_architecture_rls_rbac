@@ -8,14 +8,10 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
-  // ─── Global Filters ──────────────────────────────────────────────────────
-  // Traduce DomainException → respuestas HTTP con código y mensaje apropiados
   app.useGlobalFilters(new DomainExceptionFilter());
 
   // ─── Validation ──────────────────────────────────────────────────────────
-  // - whitelist: elimina propiedades no declaradas en el DTO
-  // - forbidNonWhitelisted: rechaza con 400 si llegan campos no permitidos
-  // - transform: convierte el payload JSON a instancias de DTO tipadas
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

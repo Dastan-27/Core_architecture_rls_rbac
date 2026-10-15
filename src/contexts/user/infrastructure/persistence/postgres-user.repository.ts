@@ -12,13 +12,6 @@ export class PostgresUserRepository extends BasePostgresRepository implements Us
     super(dataSource);
   }
 
-  /**
-   * Busca un usuario por email.
-   *
-   * Doble uso:
-   *   1. Login (sin RlsContext) → bypass RLS con transacción aislada.
-   *   2. Validación al crear usuario (con RlsContext) → usa queryRunner con RLS.
-   */
   async findByEmail(email: string): Promise<User | null> {
     const qr = RlsContext.getQueryRunner();
 
@@ -92,14 +85,6 @@ export class PostgresUserRepository extends BasePostgresRepository implements Us
       [tenantId, id],
     );
     return result.length > 0 ? (result[0] as UserWithBranch) : null;
-  }
-
-  async findBranchIdByName(tenantId: string, branchName: string): Promise<string | null> {
-    const result = await this.queryFn(
-      'SELECT id FROM branches WHERE tenant_id = $1 AND name = $2',
-      [tenantId, branchName],
-    );
-    return result.length > 0 ? (result[0].id as string) : null;
   }
 
   async updateProfile(

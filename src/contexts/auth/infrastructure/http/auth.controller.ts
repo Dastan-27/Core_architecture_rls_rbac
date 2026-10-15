@@ -50,7 +50,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async getMe(@Request() req: AuthenticatedRequest) {
     return this.getProfile.execute(
-      req.user.sub,
+      req.user.userId ?? req.user.sub,
       req.user.tenantId,
       req.user.role,
       req.user.branchId,

@@ -41,9 +41,10 @@ import {
   UpdateUserStatusUseCase,
   ResetPasswordUseCase,
   DeleteUserUseCase,
-  ResolveBranchUseCase,
 } from '../../application/use-cases/user.use-cases.js';
-import { BranchNotFoundException } from '../../../branch/domain/exceptions/branch.exceptions.js';
+import { GetBranchUseCase } from '../../../branch/application/use-cases/branch.use-cases.js';
+import { GetUserAuditTrailUseCase } from '../../../audit/application/use-cases/get-user-audit-trail.use-case.js';
+import { AuditQueryDto } from '../../../audit/application/dtos/audit-query.dto.js';
 import type { Role } from '../../../rbac/domain/models/role.enum.js';
 import type { AuthenticatedRequest } from '../../../../shared/infrastructure/http/interfaces/authenticated-request.interface.js';
 
@@ -62,8 +63,9 @@ export class UsersController {
     private readonly updateStatus: UpdateUserStatusUseCase,
     private readonly resetPassword: ResetPasswordUseCase,
     private readonly deleteUser: DeleteUserUseCase,
-    private readonly resolveBranch: ResolveBranchUseCase,
+    private readonly getBranch: GetBranchUseCase,
     private readonly assignRole: AssignRoleUseCase,
+    private readonly getUserAuditTrail: GetUserAuditTrailUseCase,
   ) {}
 
   @ApiOperation({ summary: 'Crear usuario', description: 'Crea un nuevo usuario en el tenant actual.' })
@@ -74,10 +76,8 @@ export class UsersController {
     let branchId: string | null = null;
 
     if (dto.branchName) {
-      branchId = await this.resolveBranch.execute(req.user.tenantId, dto.branchName);
-      if (!branchId) {
-        throw new BranchNotFoundException(dto.branchName);
-      }
+      const branch = await this.getBranch.execute(req.user.tenantId, dto.branchName);
+      branchId = branch.id;
     }
 
     const fullName = `${dto.firstName} ${dto.lastName}`.trim();
@@ -138,6 +138,7 @@ export class UsersController {
       fullName: dto.fullName,
       phone: dto.phone,
       branchId: dto.branchId,
+      requesterRole: req.user.role as Role,
     });
   }
 
@@ -155,6 +156,7 @@ export class UsersController {
       userId: id,
       tenantId: req.user.tenantId,
       isActive: dto.isActive,
+      requesterRole: req.user.role as Role,
     });
     return { message: 'User status updated successfully' };
   }
@@ -174,6 +176,7 @@ export class UsersController {
       id,
       tenantId: req.user.tenantId,
       newPasswordHash: newHash,
+      requesterRole: req.user.role as Role,
     });
     return { message: 'Password reset successful' };
   }
@@ -184,13 +187,13 @@ export class UsersController {
   @Roles('OWNER', 'ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
-    await this.deleteUser.execute(id, req.user.tenantId);
+    await this.deleteUser.execute(id, req.user.tenantId, req.user.role as Role);
   }
 
-  @ApiOperation({ summary: 'Cambiar rol de usuario', description: 'Solo OWNER y ADMIN pueden asignar roles.' })
+  @ApiOperation({ summary: 'Cambiar rol de usuario', description: 'Exclusivo para rol OWNER.' })
   @ApiParam({ name: 'id', description: 'UUID del usuario' })
   @Patch(':id/role')
-  @Roles('OWNER', 'ADMIN')
+  @Roles('OWNER')
   @HttpCode(HttpStatus.OK)
   async changeRole(
     @Param('id') id: string,
@@ -204,5 +207,22 @@ export class UsersController {
       assignedByRole: req.user.role as Role,
     });
     return { message: 'User role updated successfully' };
+  }
+
+  @ApiOperation({ summary: 'Audit-trail de un usuario', description: 'Consulta la bitácora de auditoría de un usuario específico con paginación.' })
+  @ApiParam({ name: 'id', description: 'UUID del usuario' })
+  @Get(':id/audit-trail')
+  @Roles('OWNER', 'ADMIN')
+  async getAuditTrail(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+    @Query() query: AuditQueryDto,
+  ) {
+    return this.getUserAuditTrail.execute({
+      userId: id,
+      tenantId: req.user.tenantId,
+      page: query.page,
+      limit: query.limit,
+    });
   }
 }

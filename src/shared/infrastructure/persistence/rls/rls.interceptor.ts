@@ -20,11 +20,18 @@ export class RlsInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest();
-    const securityContext: SecurityContext | undefined = request.user;
+    const user = request.user;
+    const userId = user?.userId ?? user?.sub;
 
-    if (!securityContext?.userId) {
+    if (!userId || !user?.tenantId) {
       return next.handle();
     }
+
+    const securityContext: SecurityContext = {
+      userId,
+      tenantId: user.tenantId,
+      role: user.role,
+    };
 
     return new Observable((subscriber) => {
       this.executeWithRls(request, securityContext, next)

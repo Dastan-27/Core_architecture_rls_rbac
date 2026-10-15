@@ -34,7 +34,10 @@ export class JwtAuthGuard implements CanActivate {
         throw new SessionExpiredException();
       }
 
-      (request as any).user = payload;
+      (request as any).user = {
+        ...payload,
+        userId: payload.userId ?? payload.sub,
+      };
     } catch (err) {
       if (err instanceof SessionExpiredException) throw err;
       throw new InvalidTokenException();

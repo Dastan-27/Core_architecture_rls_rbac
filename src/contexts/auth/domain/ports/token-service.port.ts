@@ -1,5 +1,6 @@
 export interface TokenPayload {
   readonly sub: string;
+  readonly userId?: string;
   readonly jti: string;
   readonly tenantId: string;
   readonly branchId: string | null;

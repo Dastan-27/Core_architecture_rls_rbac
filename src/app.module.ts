@@ -4,26 +4,24 @@ import { DatabaseModule } from './shared/infrastructure/persistence/database.mod
 import { RlsModule } from './shared/infrastructure/persistence/rls/rls.module.js';
 import { CorrelationIdMiddleware } from './shared/infrastructure/http/middleware/correlation-id.middleware.js';
 
-// Bounded Context Modules
 import { AuthModule } from './contexts/auth/infrastructure/auth.module.js';
 import { RbacModule } from './contexts/rbac/infrastructure/rbac.module.js';
 import { TenantModule } from './contexts/tenant/infrastructure/tenant.module.js';
 import { BranchModule } from './contexts/branch/infrastructure/branch.module.js';
 import { UserModule } from './contexts/user/infrastructure/user.module.js';
+import { AuditModule } from './contexts/audit/infrastructure/audit.module.js';
 
 @Module({
   imports: [
-    // ─── Shared Infrastructure ─────────────────────────────────────────
     AppConfigModule,
     DatabaseModule,
     RlsModule,
-
-    // ─── Bounded Contexts ──────────────────────────────────────────────
     AuthModule,
     RbacModule,
     TenantModule,
     BranchModule,
     UserModule,
+    AuditModule,
   ],
 })
 export class AppModule implements NestModule {

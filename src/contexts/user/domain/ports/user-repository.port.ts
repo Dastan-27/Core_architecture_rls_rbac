@@ -21,16 +21,11 @@ export interface UserWithBranch {
   updated_at: Date;
 }
 
-/**
- * ISP-compliant: solo operaciones CRUD de usuarios.
- * Audit logs van en su propio contexto/puerto.
- */
 export interface UserRepositoryPort {
   findByEmail(email: string): Promise<User | null>;
   findById(id: string): Promise<User | null>;
   findAll(tenantId: string, filters: UserFilters): Promise<UserWithBranch[]>;
   findOneWithBranch(id: string, tenantId: string): Promise<UserWithBranch | null>;
-  findBranchIdByName(tenantId: string, branchName: string): Promise<string | null>;
   updateProfile(id: string, tenantId: string, fullName?: string, phone?: string | null, branchId?: string | null): Promise<UserWithBranch | null>;
   resetPassword(id: string, tenantId: string, newHash: string): Promise<void>;
   softDelete(id: string, tenantId: string): Promise<boolean>;

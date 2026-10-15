@@ -14,11 +14,6 @@ export interface UserProfile {
   readonly branchId?: string | null;
 }
 
-/**
- * Enriquece el perfil del usuario con el nombre comercial del tenant.
- * Resuelve el TODO pendiente de Fase 7: inyecta TenantRepositoryPort
- * en lugar de dejar tenantName: null.
- */
 @Injectable()
 export class GetProfileUseCase {
   constructor(
@@ -26,7 +21,7 @@ export class GetProfileUseCase {
     private readonly userRepository: UserRepositoryPort,
     @Inject(TENANT_REPOSITORY_PORT)
     private readonly tenantRepository: TenantRepositoryPort,
-  ) {}
+  ) { }
 
   async execute(userId: string, tenantId: string, role: string, branchId: string | null): Promise<UserProfile> {
     const [user, tenant] = await Promise.all([

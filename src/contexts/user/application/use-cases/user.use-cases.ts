@@ -10,6 +10,10 @@ import {
   PasswordRequiredException,
 } from '../../domain/exceptions/user.exceptions.js';
 
+import { SESSION_CACHE_PORT } from '../../../auth/domain/ports/session-cache.port.js';
+import type { SessionCachePort } from '../../../auth/domain/ports/session-cache.port.js';
+import { InsufficientPermissionsException } from '../../../rbac/domain/exceptions/insufficient-permissions.exception.js';
+
 // ─── Commands ───────────────────────────────────────────────────────────────
 
 export interface CreateUserCommand {
@@ -30,18 +34,21 @@ export interface UpdateUserProfileCommand {
   readonly fullName?: string;
   readonly phone?: string | null;
   readonly branchId?: string | null;
+  readonly requesterRole?: Role;
 }
 
 export interface UpdateUserStatusCommand {
   readonly userId: string;
   readonly tenantId: string;
   readonly isActive: boolean;
+  readonly requesterRole?: Role;
 }
 
 export interface ResetPasswordCommand {
   readonly id: string;
   readonly tenantId: string;
   readonly newPasswordHash: string;
+  readonly requesterRole?: Role;
 }
 
 // ─── Use Cases ──────────────────────────────────────────────────────────────
@@ -112,6 +119,13 @@ export class UpdateUserProfileUseCase {
   ) {}
 
   async execute(command: UpdateUserProfileCommand): Promise<UserWithBranch> {
+    if (command.requesterRole === 'ADMIN') {
+      const user = await this.userRepository.findById(command.id);
+      if (user?.role === 'OWNER') {
+        throw new InsufficientPermissionsException('ADMIN no puede modificar al OWNER');
+      }
+    }
+
     const updated = await this.userRepository.updateProfile(
       command.id,
       command.tenantId,
@@ -131,6 +145,8 @@ export class UpdateUserStatusUseCase {
   constructor(
     @Inject(USER_REPOSITORY_PORT)
     private readonly userRepository: UserRepositoryPort,
+    @Inject(SESSION_CACHE_PORT)
+    private readonly sessionCache: SessionCachePort,
   ) {}
 
   async execute(command: UpdateUserStatusCommand): Promise<void> {
@@ -138,8 +154,16 @@ export class UpdateUserStatusUseCase {
     if (!user) {
       throw new UserNotFoundException(command.userId);
     }
+    if (command.requesterRole === 'ADMIN' && user.role === 'OWNER') {
+      throw new InsufficientPermissionsException('ADMIN no puede modificar al OWNER');
+    }
+
     user.changeStatus(command.isActive);
     await this.userRepository.save(user);
+
+    if (!command.isActive) {
+      await this.sessionCache.invalidateUserSessions(user.id);
+    }
   }
 }
 
@@ -154,6 +178,12 @@ export class ResetPasswordUseCase {
     if (!command.newPasswordHash) {
       throw new PasswordRequiredException();
     }
+    if (command.requesterRole === 'ADMIN') {
+      const user = await this.userRepository.findById(command.id);
+      if (user?.role === 'OWNER') {
+        throw new InsufficientPermissionsException('ADMIN no puede modificar al OWNER');
+      }
+    }
     await this.userRepository.resetPassword(command.id, command.tenantId, command.newPasswordHash);
   }
 }
@@ -163,24 +193,24 @@ export class DeleteUserUseCase {
   constructor(
     @Inject(USER_REPOSITORY_PORT)
     private readonly userRepository: UserRepositoryPort,
+    @Inject(SESSION_CACHE_PORT)
+    private readonly sessionCache: SessionCachePort,
   ) {}
 
-  async execute(id: string, tenantId: string): Promise<void> {
+  async execute(id: string, tenantId: string, requesterRole?: Role): Promise<void> {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new UserNotFoundException(id);
+    }
+    if (requesterRole === 'ADMIN' && user.role === 'OWNER') {
+      throw new InsufficientPermissionsException('ADMIN no puede eliminar al OWNER');
+    }
+
     const deleted = await this.userRepository.softDelete(id, tenantId);
     if (!deleted) {
       throw new UserNotFoundException(id);
     }
-  }
-}
 
-@Injectable()
-export class ResolveBranchUseCase {
-  constructor(
-    @Inject(USER_REPOSITORY_PORT)
-    private readonly userRepository: UserRepositoryPort,
-  ) {}
-
-  async execute(tenantId: string, branchName: string): Promise<string | null> {
-    return this.userRepository.findBranchIdByName(tenantId, branchName);
+    await this.sessionCache.invalidateUserSessions(id);
   }
 }

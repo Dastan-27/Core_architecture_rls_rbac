@@ -53,6 +53,7 @@ export class RefreshTokenUseCase {
     const newJti = uuidv4();
     const newPayload = {
       sub: user.id,
+      userId: user.id,
       jti: newJti,
       tenantId: user.tenantId,
       branchId: user.branchId,

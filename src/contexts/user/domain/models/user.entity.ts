@@ -1,5 +1,6 @@
 import type { Role } from '../../../rbac/domain/models/role.enum.js';
 import { DomainException } from '../../../../shared/domain/domain.exception.js';
+import { BaseTenantEntity } from '../../../../shared/domain/base.entity.js';
 
 // ─── Props interface (elimina constructor monstruo) ──────────────────────────
 
@@ -21,9 +22,7 @@ export interface UserProps {
 
 // ─── Entity ──────────────────────────────────────────────────────────────────
 
-export class User {
-  readonly id: string;
-  readonly tenantId: string;
+export class User extends BaseTenantEntity {
   branchId: string | null;
   documentType: string;
   documentNumber: string;
@@ -33,12 +32,14 @@ export class User {
   phone: string | null;
   role: Role;
   isActive: boolean;
-  readonly createdAt: Date;
-  updatedAt: Date;
 
   private constructor(props: UserProps) {
-    this.id = props.id;
-    this.tenantId = props.tenantId;
+    super(
+      props.id,
+      props.tenantId,
+      props.createdAt ?? new Date(),
+      props.updatedAt ?? new Date(),
+    );
     this.branchId = props.branchId;
     this.documentType = props.documentType;
     this.documentNumber = props.documentNumber;
@@ -48,14 +49,8 @@ export class User {
     this.phone = props.phone;
     this.role = props.role;
     this.isActive = props.isActive ?? true;
-    this.createdAt = props.createdAt ?? new Date();
-    this.updatedAt = props.updatedAt ?? new Date();
   }
 
-  /**
-   * Factory method — punto de entrada único para crear instancias de User.
-   * Reemplaza el constructor posicional de 13 parámetros.
-   */
   static create(props: UserProps): User {
     return new User(props);
   }
