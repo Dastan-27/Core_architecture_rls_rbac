@@ -1,0 +1,620 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "description": "Verifica la conectividad con PostgreSQL y Redis. Retorna 200 si el sistema está saludable o degradado, 503 si la base de datos no está disponible.",
+        "operationId": "HealthController_getHealth[0]",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Servicios saludables o degradados"
+          },
+          "503": {
+            "description": "Servicio no disponible (BD caída)"
+          }
+        },
+        "summary": "Health check completo",
+        "tags": [
+          "Health - Diagnóstico del Sistema"
+        ]
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "description": "Verifica la conectividad con PostgreSQL y Redis. Retorna 200 si el sistema está saludable o degradado, 503 si la base de datos no está disponible.",
+        "operationId": "HealthController_getHealth[1]",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Servicios saludables o degradados"
+          },
+          "503": {
+            "description": "Servicio no disponible (BD caída)"
+          }
+        },
+        "summary": "Health check completo",
+        "tags": [
+          "Health - Diagnóstico del Sistema"
+        ]
+      }
+    },
+    "/health/liveness": {
+      "get": {
+        "description": "Comprueba únicamente que la aplicación esté ejecutándose.",
+        "operationId": "HealthController_getLiveness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Liveness Probe (Kubernetes / Docker)",
+        "tags": [
+          "Health - Diagnóstico del Sistema"
+        ]
+      }
+    },
+    "/health/readiness": {
+      "get": {
+        "description": "Comprueba que las dependencias críticas (PostgreSQL) estén listas para recibir tráfico.",
+        "operationId": "HealthController_getReadiness",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Readiness Probe (Kubernetes / Docker)",
+        "tags": [
+          "Health - Diagnóstico del Sistema"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "description": "Valida credenciales y devuelve tokens JWT. Protegido con Rate Limiting (máximo 5 intentos por minuto).",
+        "operationId": "AuthController_loginUser",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Iniciar sesión",
+        "tags": [
+          "Auth - Autenticación y Sesiones"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "description": "Rota el refresh token y devuelve nuevos tokens.",
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Refrescar token",
+        "tags": [
+          "Auth - Autenticación y Sesiones"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "Invalida la sesión actual en Redis revocando el token activo.",
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cerrar sesión",
+        "tags": [
+          "Auth - Autenticación y Sesiones"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "description": "Devuelve los datos del usuario autenticado.",
+        "operationId": "AuthController_getMe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener perfil actual",
+        "tags": [
+          "Auth - Autenticación y Sesiones"
+        ]
+      }
+    },
+    "/api/v1/tenants/current": {
+      "get": {
+        "operationId": "TenantsController_getCurrentTenant",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener mi empresa",
+        "tags": [
+          "Tenants - Informacion de la Empresa"
+        ]
+      },
+      "patch": {
+        "operationId": "TenantsController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar empresa",
+        "tags": [
+          "Tenants - Informacion de la Empresa"
+        ]
+      },
+      "delete": {
+        "operationId": "TenantsController_delete",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Desactivar empresa (Soft Delete)",
+        "tags": [
+          "Tenants - Informacion de la Empresa"
+        ]
+      }
+    },
+    "/api/v1/tenants": {
+      "post": {
+        "operationId": "TenantsController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear empresa",
+        "tags": [
+          "Tenants - Informacion de la Empresa"
+        ]
+      }
+    },
+    "/api/v1/branches": {
+      "get": {
+        "operationId": "BranchesController_getAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar sucursales",
+        "tags": [
+          "Branches - Sucursales"
+        ]
+      },
+      "post": {
+        "operationId": "BranchesController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear sucursal",
+        "tags": [
+          "Branches - Sucursales"
+        ]
+      }
+    },
+    "/api/v1/branches/{identifier}": {
+      "get": {
+        "operationId": "BranchesController_getOne",
+        "parameters": [
+          {
+            "name": "identifier",
+            "required": true,
+            "in": "path",
+            "description": "UUID o nombre de la sucursal",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener sucursal por ID o Nombre",
+        "tags": [
+          "Branches - Sucursales"
+        ]
+      },
+      "patch": {
+        "operationId": "BranchesController_update",
+        "parameters": [
+          {
+            "name": "identifier",
+            "required": true,
+            "in": "path",
+            "description": "UUID o nombre de la sucursal",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar sucursal",
+        "tags": [
+          "Branches - Sucursales"
+        ]
+      },
+      "delete": {
+        "operationId": "BranchesController_delete",
+        "parameters": [
+          {
+            "name": "identifier",
+            "required": true,
+            "in": "path",
+            "description": "UUID o nombre de la sucursal",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar sucursal (Soft Delete)",
+        "tags": [
+          "Branches - Sucursales"
+        ]
+      }
+    },
+    "/api/v1/users": {
+      "post": {
+        "description": "Crea un nuevo usuario en el tenant actual.",
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear usuario",
+        "tags": [
+          "Users - Gestión de Usuarios"
+        ]
+      },
+      "get": {
+        "description": "Obtiene todos los usuarios del tenant con filtros opcionales.",
+        "operationId": "UsersController_findAll",
+        "parameters": [
+          {
+            "name": "is_active",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "branch_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar usuarios",
+        "tags": [
+          "Users - Gestión de Usuarios"
+        ]
+      }
+    },
+    "/api/v1/users/{id}": {
+      "get": {
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener usuario por ID",
+        "tags": [
+          "Users - Gestión de Usuarios"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar perfil de usuario",
+        "tags": [
+          "Users - Gestión de Usuarios"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario a desactivar",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar usuario (Soft Delete)",
+        "tags": [
+          "Users - Gestión de Usuarios"
+        ]
+      }
+    },
+    "/api/v1/users/{id}/status": {
+      "patch": {
+        "operationId": "UsersController_changeStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Activar/Desactivar usuario",
+        "tags": [
+          "Users - Gestión de Usuarios"
+        ]
+      }
+    },
+    "/api/v1/users/{id}/reset-password": {
+      "post": {
+        "operationId": "UsersController_resetUserPassword",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Resetear contraseña",
+        "tags": [
+          "Users - Gestión de Usuarios"
+        ]
+      }
+    },
+    "/api/v1/users/{id}/role": {
+      "patch": {
+        "description": "Exclusivo para rol OWNER.",
+        "operationId": "UsersController_changeRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cambiar rol de usuario",
+        "tags": [
+          "Users - Gestión de Usuarios"
+        ]
+      }
+    },
+    "/api/v1/users/{id}/audit-trail": {
+      "get": {
+        "description": "Consulta la bitácora de auditoría de un usuario específico con paginación.",
+        "operationId": "UsersController_getAuditTrail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del usuario",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Audit-trail de un usuario",
+        "tags": [
+          "Users - Gestión de Usuarios"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "API SaaS Contable",
+    "description": "Core Architecture — Multi-Tenancy, RLS y RBAC",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {}
+  }
+}

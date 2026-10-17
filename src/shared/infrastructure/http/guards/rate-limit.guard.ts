@@ -20,6 +20,7 @@ export class RateLimitGuard implements CanActivate {
   private readonly logger = new Logger(RateLimitGuard.name);
 
   constructor(
+    @Inject(Reflector)
     private readonly reflector: Reflector,
     @Inject(REDIS_CLIENT)
     private readonly redis: Redis,

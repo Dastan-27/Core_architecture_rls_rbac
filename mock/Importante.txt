@@ -1,0 +1,2 @@
+El archivo necesario para integrar este proyecto en tu proyecto esta en:
+Script\openapi.json

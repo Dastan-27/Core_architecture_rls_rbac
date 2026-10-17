@@ -1,4 +1,4 @@
-﻿# Mock — Coleccion de Requests HTTP
+# Mock — Coleccion de Requests HTTP
 
 Archivos listos para probar la API de **Core Architecture RLS & RBAC** sin escribir nada desde cero.
 
@@ -8,8 +8,14 @@ Archivos listos para probar la API de **Core Architecture RLS & RBAC** sin escri
 
 | Archivo | Uso |
 |---|---|
+| `openapi.json` | Especificación OpenAPI 3.0 / Swagger del Core para autogenerar clientes o validar esquemas |
 | `api-core.http` | VS Code REST Client / Thunder Client |
 | `postman-collection.json` | Postman / Insomnia |
+
+> **Nota:** Puedes regenerar `openapi.json` en cualquier momento ejecutando:
+> ```bash
+> npm run export:openapi
+> ```
 
 ---
 

@@ -15,7 +15,8 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "oxlint --type-aware src/",
-    "seed": "tsx src/shared/infrastructure/persistence/seeds/seed.ts"
+    "seed": "tsx src/shared/infrastructure/persistence/seeds/seed.ts",
+    "export:openapi": "tsx scripts/export-openapi.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
