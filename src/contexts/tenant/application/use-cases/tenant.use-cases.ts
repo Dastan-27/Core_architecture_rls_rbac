@@ -17,7 +17,7 @@ export class GetTenantUseCase {
   constructor(
     @Inject(TENANT_REPOSITORY_PORT)
     private readonly tenantRepository: TenantRepositoryPort,
-  ) { }
+  ) {}
 
   async execute(tenantId: string): Promise<Tenant> {
     const tenant = await this.tenantRepository.findById(tenantId);
@@ -33,7 +33,7 @@ export class CreateTenantUseCase {
   constructor(
     @Inject(TENANT_REPOSITORY_PORT)
     private readonly tenantRepository: TenantRepositoryPort,
-  ) { }
+  ) {}
 
   async execute(data: CreateTenantData): Promise<Tenant> {
     const existing = await this.tenantRepository.findByNitRut(data.nitRut);
@@ -49,7 +49,7 @@ export class UpdateTenantUseCase {
   constructor(
     @Inject(TENANT_REPOSITORY_PORT)
     private readonly tenantRepository: TenantRepositoryPort,
-  ) { }
+  ) {}
 
   async execute(tenantId: string, data: UpdateTenantData): Promise<Tenant> {
     const updated = await this.tenantRepository.update(tenantId, data);
@@ -65,7 +65,7 @@ export class DeactivateTenantUseCase {
   constructor(
     @Inject(TENANT_REPOSITORY_PORT)
     private readonly tenantRepository: TenantRepositoryPort,
-  ) { }
+  ) {}
 
   async execute(tenantId: string): Promise<DeactivateTenantResult> {
     const result = await this.tenantRepository.softDelete(tenantId);

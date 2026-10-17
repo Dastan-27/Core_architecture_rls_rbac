@@ -26,4 +26,3 @@ import { RbacModule } from '../../rbac/infrastructure/rbac.module.js';
   exports: [ListBranchesUseCase, GetBranchUseCase],
 })
 export class BranchModule {}
-

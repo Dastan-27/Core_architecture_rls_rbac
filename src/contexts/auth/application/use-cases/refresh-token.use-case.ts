@@ -37,7 +37,10 @@ export class RefreshTokenUseCase {
       throw new InvalidCredentialsException();
     }
 
-    const isActive = await this.sessionCache.isSessionActive(payload.sub, payload.jti);
+    const isActive = await this.sessionCache.isSessionActive(
+      payload.sub,
+      payload.jti,
+    );
     if (!isActive) {
       throw new SessionExpiredException();
     }

@@ -57,7 +57,11 @@ export class User extends BaseTenantEntity {
 
   // ─── Comportamientos de dominio ─────────────────────────────────────────────
 
-  updateProfile(fullName: string, phone: string | null, branchId: string | null): void {
+  updateProfile(
+    fullName: string,
+    phone: string | null,
+    branchId: string | null,
+  ): void {
     this.fullName = fullName;
     this.phone = phone;
     this.branchId = branchId;

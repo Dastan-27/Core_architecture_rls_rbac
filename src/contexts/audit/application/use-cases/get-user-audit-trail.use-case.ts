@@ -18,7 +18,9 @@ export class GetUserAuditTrailUseCase {
     private readonly auditRepository: AuditRepositoryPort,
   ) {}
 
-  async execute(command: GetUserAuditTrailCommand): Promise<PaginatedResult<AuditLog>> {
+  async execute(
+    command: GetUserAuditTrailCommand,
+  ): Promise<PaginatedResult<AuditLog>> {
     const page = command.page ?? 1;
     const limit = command.limit ?? 20;
     return this.auditRepository.getAuditTrail(

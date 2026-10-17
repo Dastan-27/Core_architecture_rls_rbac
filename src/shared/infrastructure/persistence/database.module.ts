@@ -14,4 +14,4 @@ import { DatabaseService } from './database.service.js';
   providers: [DatabaseService],
   exports: [DatabaseService],
 })
-export class DatabaseModule { }
+export class DatabaseModule {}

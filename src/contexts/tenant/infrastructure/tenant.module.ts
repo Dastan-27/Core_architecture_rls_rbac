@@ -24,4 +24,3 @@ import { RbacModule } from '../../rbac/infrastructure/rbac.module.js';
   exports: [GetTenantUseCase],
 })
 export class TenantModule {}
-

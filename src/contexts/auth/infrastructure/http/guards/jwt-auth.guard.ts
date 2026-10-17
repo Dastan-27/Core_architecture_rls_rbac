@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, Inject } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  Inject,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { TOKEN_SERVICE_PORT } from '../../../domain/ports/token-service.port.js';
 import type { TokenServicePort } from '../../../domain/ports/token-service.port.js';
@@ -7,6 +12,7 @@ import type { SessionCachePort } from '../../../domain/ports/session-cache.port.
 import {
   InvalidTokenException,
   SessionExpiredException,
+  SessionCacheUnavailableException,
 } from '../../../domain/exceptions/auth.exceptions.js';
 
 @Injectable()
@@ -29,7 +35,10 @@ export class JwtAuthGuard implements CanActivate {
     try {
       const payload = await this.tokenService.verify(token);
 
-      const isActive = await this.sessionCache.isSessionActive(payload.sub, payload.jti);
+      const isActive = await this.sessionCache.isSessionActive(
+        payload.sub,
+        payload.jti,
+      );
       if (!isActive) {
         throw new SessionExpiredException();
       }
@@ -39,7 +48,12 @@ export class JwtAuthGuard implements CanActivate {
         userId: payload.userId ?? payload.sub,
       };
     } catch (err) {
-      if (err instanceof SessionExpiredException) throw err;
+      if (
+        err instanceof SessionExpiredException ||
+        err instanceof SessionCacheUnavailableException
+      ) {
+        throw err;
+      }
       throw new InvalidTokenException();
     }
 

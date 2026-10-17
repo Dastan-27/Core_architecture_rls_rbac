@@ -10,9 +10,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    this.logger.warn(
-      `[${exception.code}] ${exception.message}`,
-    );
+    this.logger.warn(`[${exception.code}] ${exception.message}`);
 
     response.status(exception.statusCode).json({
       statusCode: exception.statusCode,

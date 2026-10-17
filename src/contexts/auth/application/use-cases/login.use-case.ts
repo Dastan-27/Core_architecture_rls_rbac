@@ -37,7 +37,10 @@ export class LoginUseCase {
       throw new InvalidCredentialsException();
     }
 
-    const isValid = await this.passwordHasher.compare(command.passwordRaw, user.passwordHash);
+    const isValid = await this.passwordHasher.compare(
+      command.passwordRaw,
+      user.passwordHash,
+    );
     if (!isValid) {
       throw new InvalidCredentialsException();
     }

@@ -2,11 +2,7 @@ import { DomainException } from '../../../../shared/domain/domain.exception.js';
 
 export class UserNotFoundException extends DomainException {
   constructor(identifier: string) {
-    super(
-      `Usuario '${identifier}' no encontrado`,
-      'USER_NOT_FOUND',
-      404,
-    );
+    super(`Usuario '${identifier}' no encontrado`, 'USER_NOT_FOUND', 404);
   }
 }
 
@@ -22,10 +18,6 @@ export class EmailAlreadyRegisteredException extends DomainException {
 
 export class PasswordRequiredException extends DomainException {
   constructor() {
-    super(
-      'La nueva contraseña es requerida',
-      'PASSWORD_REQUIRED',
-      400,
-    );
+    super('La nueva contraseña es requerida', 'PASSWORD_REQUIRED', 400);
   }
 }

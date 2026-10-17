@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import databaseConfig from './database.config.js';
+import redisConfig from './redis.config.js';
 import { validateEnvironment } from './env.validation.js';
 
 @Global()
@@ -12,8 +13,8 @@ import { validateEnvironment } from './env.validation.js';
       cache: true,
       expandVariables: true,
       validate: validateEnvironment,
-      load: [databaseConfig],
+      load: [databaseConfig, redisConfig],
     }),
   ],
 })
-export class AppConfigModule { }
+export class AppConfigModule {}

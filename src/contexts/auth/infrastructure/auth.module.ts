@@ -19,6 +19,7 @@ import { RefreshTokenUseCase } from '../application/use-cases/refresh-token.use-
 import { GetProfileUseCase } from '../application/use-cases/get-profile.use-case.js';
 
 import { JwtAuthGuard } from './http/guards/jwt-auth.guard.js';
+import { RateLimitGuard } from '../../../shared/infrastructure/http/guards/rate-limit.guard.js';
 import { AuthController } from './http/auth.controller.js';
 
 @Module({
@@ -46,11 +47,13 @@ import { AuthController } from './http/auth.controller.js';
     RefreshTokenUseCase,
     GetProfileUseCase,
 
-    // Guard (exportado para cross-context)
+    // Guards
     JwtAuthGuard,
+    RateLimitGuard,
   ],
   exports: [
     JwtAuthGuard,
+    RateLimitGuard,
     TOKEN_SERVICE_PORT,
     SESSION_CACHE_PORT,
     PASSWORD_HASHER_PORT,

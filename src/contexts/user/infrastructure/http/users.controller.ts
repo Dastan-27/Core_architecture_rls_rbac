@@ -68,15 +68,24 @@ export class UsersController {
     private readonly getUserAuditTrail: GetUserAuditTrailUseCase,
   ) {}
 
-  @ApiOperation({ summary: 'Crear usuario', description: 'Crea un nuevo usuario en el tenant actual.' })
+  @ApiOperation({
+    summary: 'Crear usuario',
+    description: 'Crea un nuevo usuario en el tenant actual.',
+  })
   @Post()
   @Roles('OWNER', 'ADMIN')
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() dto: CreateUserDto, @Request() req: AuthenticatedRequest) {
+  async create(
+    @Body() dto: CreateUserDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
     let branchId: string | null = null;
 
     if (dto.branchName) {
-      const branch = await this.getBranch.execute(req.user.tenantId, dto.branchName);
+      const branch = await this.getBranch.execute(
+        req.user.tenantId,
+        dto.branchName,
+      );
       branchId = branch.id;
     }
 
@@ -96,7 +105,11 @@ export class UsersController {
     });
   }
 
-  @ApiOperation({ summary: 'Listar usuarios', description: 'Obtiene todos los usuarios del tenant con filtros opcionales.' })
+  @ApiOperation({
+    summary: 'Listar usuarios',
+    description:
+      'Obtiene todos los usuarios del tenant con filtros opcionales.',
+  })
   @ApiQuery({ name: 'branch_id', required: false, type: String })
   @ApiQuery({ name: 'role', required: false, type: String })
   @ApiQuery({ name: 'is_active', required: false, type: String })
@@ -190,7 +203,10 @@ export class UsersController {
     await this.deleteUser.execute(id, req.user.tenantId, req.user.role as Role);
   }
 
-  @ApiOperation({ summary: 'Cambiar rol de usuario', description: 'Exclusivo para rol OWNER.' })
+  @ApiOperation({
+    summary: 'Cambiar rol de usuario',
+    description: 'Exclusivo para rol OWNER.',
+  })
   @ApiParam({ name: 'id', description: 'UUID del usuario' })
   @Patch(':id/role')
   @Roles('OWNER')
@@ -209,7 +225,11 @@ export class UsersController {
     return { message: 'User role updated successfully' };
   }
 
-  @ApiOperation({ summary: 'Audit-trail de un usuario', description: 'Consulta la bitácora de auditoría de un usuario específico con paginación.' })
+  @ApiOperation({
+    summary: 'Audit-trail de un usuario',
+    description:
+      'Consulta la bitácora de auditoría de un usuario específico con paginación.',
+  })
   @ApiParam({ name: 'id', description: 'UUID del usuario' })
   @Get(':id/audit-trail')
   @Roles('OWNER', 'ADMIN')

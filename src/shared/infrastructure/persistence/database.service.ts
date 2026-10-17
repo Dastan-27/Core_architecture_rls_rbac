@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm';
 export class DatabaseService implements OnApplicationBootstrap {
   private readonly logger = new Logger(DatabaseService.name);
 
-  constructor(private readonly dataSource: DataSource) { }
+  constructor(private readonly dataSource: DataSource) {}
 
   async onApplicationBootstrap(): Promise<void> {
     await this.verifyConnection();
@@ -14,9 +14,7 @@ export class DatabaseService implements OnApplicationBootstrap {
   async verifyConnection(): Promise<boolean> {
     try {
       await this.dataSource.query('SELECT 1');
-      this.logger.log(
-        'Conexión a la base de datos establecida correctamente',
-      );
+      this.logger.log('Conexión a la base de datos establecida correctamente');
       return true;
     } catch (error) {
       this.logger.error(

@@ -21,9 +21,14 @@ export class GetProfileUseCase {
     private readonly userRepository: UserRepositoryPort,
     @Inject(TENANT_REPOSITORY_PORT)
     private readonly tenantRepository: TenantRepositoryPort,
-  ) { }
+  ) {}
 
-  async execute(userId: string, tenantId: string, role: string, branchId: string | null): Promise<UserProfile> {
+  async execute(
+    userId: string,
+    tenantId: string,
+    role: string,
+    branchId: string | null,
+  ): Promise<UserProfile> {
     const [user, tenant] = await Promise.all([
       this.userRepository.findOneWithBranch(userId, tenantId),
       this.tenantRepository.findById(tenantId),

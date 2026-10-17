@@ -4,7 +4,7 @@ export abstract class BaseTenantEntity {
     public readonly tenantId: string,
     public readonly createdAt: Date = new Date(),
     public updatedAt: Date = new Date(),
-  ) { }
+  ) {}
 
   protected touch(): void {
     this.updatedAt = new Date();

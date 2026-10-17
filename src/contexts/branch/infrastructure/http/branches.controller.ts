@@ -11,7 +11,12 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../auth/infrastructure/http/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../../../rbac/infrastructure/guards/roles.guard.js';
 import { Roles } from '../../../rbac/infrastructure/decorators/roles.decorator.js';
@@ -36,7 +41,7 @@ export class BranchesController {
     private readonly createBranch: CreateBranchUseCase,
     private readonly updateBranch: UpdateBranchUseCase,
     private readonly deleteBranch: DeleteBranchUseCase,
-  ) { }
+  ) {}
 
   @ApiOperation({ summary: 'Listar sucursales' })
   @Get()

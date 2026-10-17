@@ -11,7 +11,10 @@ import {
 } from '../../../../shared/domain/pagination.js';
 
 @Injectable()
-export class PostgresAuditRepository extends BasePostgresRepository implements AuditRepositoryPort {
+export class PostgresAuditRepository
+  extends BasePostgresRepository
+  implements AuditRepositoryPort
+{
   constructor(dataSource: DataSource) {
     super(dataSource);
   }

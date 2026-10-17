@@ -1,7 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { USER_REPOSITORY_PORT } from '../../domain/ports/user-repository.port.js';
-import type { UserRepositoryPort, UserFilters, UserWithBranch } from '../../domain/ports/user-repository.port.js';
+import type {
+  UserRepositoryPort,
+  UserFilters,
+  UserWithBranch,
+} from '../../domain/ports/user-repository.port.js';
 import { User } from '../../domain/models/user.entity.js';
 import type { Role } from '../../../rbac/domain/models/role.enum.js';
 import {
@@ -90,7 +94,10 @@ export class ListUsersUseCase {
     private readonly userRepository: UserRepositoryPort,
   ) {}
 
-  async execute(tenantId: string, filters: UserFilters): Promise<UserWithBranch[]> {
+  async execute(
+    tenantId: string,
+    filters: UserFilters,
+  ): Promise<UserWithBranch[]> {
     return this.userRepository.findAll(tenantId, filters);
   }
 }
@@ -122,7 +129,9 @@ export class UpdateUserProfileUseCase {
     if (command.requesterRole === 'ADMIN') {
       const user = await this.userRepository.findById(command.id);
       if (user?.role === 'OWNER') {
-        throw new InsufficientPermissionsException('ADMIN no puede modificar al OWNER');
+        throw new InsufficientPermissionsException(
+          'ADMIN no puede modificar al OWNER',
+        );
       }
     }
 
@@ -155,7 +164,9 @@ export class UpdateUserStatusUseCase {
       throw new UserNotFoundException(command.userId);
     }
     if (command.requesterRole === 'ADMIN' && user.role === 'OWNER') {
-      throw new InsufficientPermissionsException('ADMIN no puede modificar al OWNER');
+      throw new InsufficientPermissionsException(
+        'ADMIN no puede modificar al OWNER',
+      );
     }
 
     user.changeStatus(command.isActive);
@@ -172,6 +183,8 @@ export class ResetPasswordUseCase {
   constructor(
     @Inject(USER_REPOSITORY_PORT)
     private readonly userRepository: UserRepositoryPort,
+    @Inject(SESSION_CACHE_PORT)
+    private readonly sessionCache: SessionCachePort,
   ) {}
 
   async execute(command: ResetPasswordCommand): Promise<void> {
@@ -181,10 +194,17 @@ export class ResetPasswordUseCase {
     if (command.requesterRole === 'ADMIN') {
       const user = await this.userRepository.findById(command.id);
       if (user?.role === 'OWNER') {
-        throw new InsufficientPermissionsException('ADMIN no puede modificar al OWNER');
+        throw new InsufficientPermissionsException(
+          'ADMIN no puede modificar al OWNER',
+        );
       }
     }
-    await this.userRepository.resetPassword(command.id, command.tenantId, command.newPasswordHash);
+    await this.userRepository.resetPassword(
+      command.id,
+      command.tenantId,
+      command.newPasswordHash,
+    );
+    await this.sessionCache.invalidateUserSessions(command.id);
   }
 }
 
@@ -197,13 +217,19 @@ export class DeleteUserUseCase {
     private readonly sessionCache: SessionCachePort,
   ) {}
 
-  async execute(id: string, tenantId: string, requesterRole?: Role): Promise<void> {
+  async execute(
+    id: string,
+    tenantId: string,
+    requesterRole?: Role,
+  ): Promise<void> {
     const user = await this.userRepository.findById(id);
     if (!user) {
       throw new UserNotFoundException(id);
     }
     if (requesterRole === 'ADMIN' && user.role === 'OWNER') {
-      throw new InsufficientPermissionsException('ADMIN no puede eliminar al OWNER');
+      throw new InsufficientPermissionsException(
+        'ADMIN no puede eliminar al OWNER',
+      );
     }
 
     const deleted = await this.userRepository.softDelete(id, tenantId);

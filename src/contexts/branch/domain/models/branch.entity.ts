@@ -15,7 +15,11 @@ export class Branch extends BaseTenantEntity {
     super(id, tenantId, createdAt, updatedAt);
   }
 
-  updateDetails(name: string, address: string | null, phone: string | null): void {
+  updateDetails(
+    name: string,
+    address: string | null,
+    phone: string | null,
+  ): void {
     this.name = name;
     this.address = address;
     this.phone = phone;

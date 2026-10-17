@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { RateLimitGuard } from '../../../../shared/infrastructure/http/guards/rate-limit.guard.js';
+import { RateLimit } from '../../../../shared/infrastructure/http/decorators/rate-limit.decorator.js';
 import { LoginDto, RefreshDto } from '../../application/dtos/auth.dtos.js';
 import { LoginUseCase } from '../../application/use-cases/login.use-case.js';
 import { RefreshTokenUseCase } from '../../application/use-cases/refresh-token.use-case.js';
@@ -25,7 +27,13 @@ export class AuthController {
     private readonly getProfile: GetProfileUseCase,
   ) {}
 
-  @ApiOperation({ summary: 'Iniciar sesión', description: 'Valida credenciales y devuelve tokens JWT.' })
+  @ApiOperation({
+    summary: 'Iniciar sesión',
+    description:
+      'Valida credenciales y devuelve tokens JWT. Protegido con Rate Limiting (máximo 5 intentos por minuto).',
+  })
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ limit: 5, ttlSeconds: 60, trackByBodyField: 'email' })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async loginUser(@Body() dto: LoginDto) {
@@ -35,7 +43,10 @@ export class AuthController {
     });
   }
 
-  @ApiOperation({ summary: 'Refrescar token', description: 'Rota el refresh token y devuelve nuevos tokens.' })
+  @ApiOperation({
+    summary: 'Refrescar token',
+    description: 'Rota el refresh token y devuelve nuevos tokens.',
+  })
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(@Body() dto: RefreshDto) {
@@ -44,7 +55,10 @@ export class AuthController {
     });
   }
 
-  @ApiOperation({ summary: 'Obtener perfil actual', description: 'Devuelve los datos del usuario autenticado.' })
+  @ApiOperation({
+    summary: 'Obtener perfil actual',
+    description: 'Devuelve los datos del usuario autenticado.',
+  })
   @ApiBearerAuth()
   @Get('me')
   @UseGuards(JwtAuthGuard)

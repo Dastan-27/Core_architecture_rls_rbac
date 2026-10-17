@@ -25,8 +25,17 @@ export interface UserRepositoryPort {
   findByEmail(email: string): Promise<User | null>;
   findById(id: string): Promise<User | null>;
   findAll(tenantId: string, filters: UserFilters): Promise<UserWithBranch[]>;
-  findOneWithBranch(id: string, tenantId: string): Promise<UserWithBranch | null>;
-  updateProfile(id: string, tenantId: string, fullName?: string, phone?: string | null, branchId?: string | null): Promise<UserWithBranch | null>;
+  findOneWithBranch(
+    id: string,
+    tenantId: string,
+  ): Promise<UserWithBranch | null>;
+  updateProfile(
+    id: string,
+    tenantId: string,
+    fullName?: string,
+    phone?: string | null,
+    branchId?: string | null,
+  ): Promise<UserWithBranch | null>;
   resetPassword(id: string, tenantId: string, newHash: string): Promise<void>;
   softDelete(id: string, tenantId: string): Promise<boolean>;
   save(user: User): Promise<User>;

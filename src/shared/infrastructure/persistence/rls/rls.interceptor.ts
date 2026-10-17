@@ -16,7 +16,7 @@ import { RlsContext } from './rls.context.js';
 export class RlsInterceptor implements NestInterceptor {
   private readonly logger = new Logger(RlsInterceptor.name);
 
-  constructor(private readonly dataSource: DataSource) { }
+  constructor(private readonly dataSource: DataSource) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest();
@@ -60,13 +60,15 @@ export class RlsInterceptor implements NestInterceptor {
       await this.setRlsVariables(queryRunner, ctx);
       request[RLS_ENTITY_MANAGER_KEY] = queryRunner.manager;
 
-      const result = await RlsContext.run(queryRunner, () =>
-        new Promise((resolve, reject) => {
-          next.handle().subscribe({
-            next: (value) => resolve(value),
-            error: (err) => reject(err),
-          });
-        }),
+      const result = await RlsContext.run(
+        queryRunner,
+        () =>
+          new Promise((resolve, reject) => {
+            next.handle().subscribe({
+              next: (value) => resolve(value),
+              error: (err) => reject(err),
+            });
+          }),
       );
 
       await queryRunner.commitTransaction();

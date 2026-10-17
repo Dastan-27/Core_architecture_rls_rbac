@@ -32,7 +32,8 @@ export class CreateTenantDto {
   @ApiProperty({ example: '3001234567' })
   @IsString()
   @Matches(/^[0-9]{7,10}$/, {
-    message: 'El telefono debe contener solo numeros y tener entre 7 y 10 digitos',
+    message:
+      'El telefono debe contener solo numeros y tener entre 7 y 10 digitos',
   })
   phone: string;
 
@@ -53,11 +54,23 @@ export class CreateTenantDto {
   currencyCode?: string;
 
   @ApiProperty({
-    enum: ['REGIMEN_SIMPLE', 'RESPONSABLE_IVA', 'NO_RESPONSABLE_IVA', 'GRAN_CONTRIBUYENTE', 'REGIMEN_ESPECIAL'],
+    enum: [
+      'REGIMEN_SIMPLE',
+      'RESPONSABLE_IVA',
+      'NO_RESPONSABLE_IVA',
+      'GRAN_CONTRIBUYENTE',
+      'REGIMEN_ESPECIAL',
+    ],
     required: false,
   })
   @IsString()
-  @IsIn(['REGIMEN_SIMPLE', 'RESPONSABLE_IVA', 'NO_RESPONSABLE_IVA', 'GRAN_CONTRIBUYENTE', 'REGIMEN_ESPECIAL'])
+  @IsIn([
+    'REGIMEN_SIMPLE',
+    'RESPONSABLE_IVA',
+    'NO_RESPONSABLE_IVA',
+    'GRAN_CONTRIBUYENTE',
+    'REGIMEN_ESPECIAL',
+  ])
   @IsOptional()
   taxRegime?: string;
 }

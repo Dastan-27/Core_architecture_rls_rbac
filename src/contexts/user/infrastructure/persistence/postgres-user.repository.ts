@@ -1,13 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { BasePostgresRepository } from '../../../../shared/infrastructure/persistence/base-postgres.repository.js';
-import type { UserRepositoryPort, UserFilters, UserWithBranch } from '../../domain/ports/user-repository.port.js';
+import type {
+  UserRepositoryPort,
+  UserFilters,
+  UserWithBranch,
+} from '../../domain/ports/user-repository.port.js';
 import { User } from '../../domain/models/user.entity.js';
 import type { Role } from '../../../rbac/domain/models/role.enum.js';
 import { RlsContext } from '../../../../shared/infrastructure/persistence/rls/rls.context.js';
 
 @Injectable()
-export class PostgresUserRepository extends BasePostgresRepository implements UserRepositoryPort {
+export class PostgresUserRepository
+  extends BasePostgresRepository
+  implements UserRepositoryPort
+{
   constructor(dataSource: DataSource) {
     super(dataSource);
   }
@@ -44,7 +51,10 @@ export class PostgresUserRepository extends BasePostgresRepository implements Us
     return this.mapToEntity(result[0]);
   }
 
-  async findAll(tenantId: string, filters: UserFilters): Promise<UserWithBranch[]> {
+  async findAll(
+    tenantId: string,
+    filters: UserFilters,
+  ): Promise<UserWithBranch[]> {
     let sql = `
       SELECT
         u.id, u.full_name, u.email, u.phone,
@@ -76,7 +86,10 @@ export class PostgresUserRepository extends BasePostgresRepository implements Us
     return this.queryFn(sql, params);
   }
 
-  async findOneWithBranch(id: string, tenantId: string): Promise<UserWithBranch | null> {
+  async findOneWithBranch(
+    id: string,
+    tenantId: string,
+  ): Promise<UserWithBranch | null> {
     const result = await this.queryFn(
       `SELECT u.*, b.name AS branch_name
        FROM users u
@@ -88,8 +101,11 @@ export class PostgresUserRepository extends BasePostgresRepository implements Us
   }
 
   async updateProfile(
-    id: string, tenantId: string,
-    fullName?: string, phone?: string | null, branchId?: string | null,
+    id: string,
+    tenantId: string,
+    fullName?: string,
+    phone?: string | null,
+    branchId?: string | null,
   ): Promise<UserWithBranch | null> {
     const result = await this.queryFn(
       `UPDATE users SET
@@ -104,7 +120,11 @@ export class PostgresUserRepository extends BasePostgresRepository implements Us
     return result.length > 0 ? (result[0] as UserWithBranch) : null;
   }
 
-  async resetPassword(id: string, tenantId: string, newHash: string): Promise<void> {
+  async resetPassword(
+    id: string,
+    tenantId: string,
+    newHash: string,
+  ): Promise<void> {
     await this.queryFn(
       'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE tenant_id = $2 AND id = $3',
       [newHash, tenantId, id],
@@ -134,9 +154,19 @@ export class PostgresUserRepository extends BasePostgresRepository implements Us
         password_hash = EXCLUDED.password_hash,
         updated_at = EXCLUDED.updated_at`,
       [
-        user.id, user.tenantId, user.branchId, user.documentType, user.documentNumber,
-        user.email, user.passwordHash, user.fullName, user.phone, user.role,
-        user.isActive, user.createdAt, user.updatedAt,
+        user.id,
+        user.tenantId,
+        user.branchId,
+        user.documentType,
+        user.documentNumber,
+        user.email,
+        user.passwordHash,
+        user.fullName,
+        user.phone,
+        user.role,
+        user.isActive,
+        user.createdAt,
+        user.updatedAt,
       ],
     );
     return user;
