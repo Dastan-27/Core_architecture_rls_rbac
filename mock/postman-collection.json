@@ -1,0 +1,392 @@
+﻿{
+  "info": {
+    "name": "Core Architecture RLS & RBAC",
+    "description": "Coleccion completa de la API SaaS Contable — Multi-Tenancy, RLS y RBAC.\n\nCREDENCIALES DEL SEED:\n- Password universal: Password123*\n- Tenant 1 (Tech Solutions SAS):\n  OWNER:             owner@techsolutions.com\n  ADMIN:             admin@techsolutions.com\n  ACCOUNTANT:        accountant@techsolutions.com\n  WAREHOUSE_MANAGER: warehouse@techsolutions.com\n  CASHIER:           cashier@techsolutions.com\n- Tenant 2 (Andina - para validar RLS):\n  OWNER:             owner@andina.com",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "BASE_URL", "value": "http://localhost:3001" },
+    { "key": "ACCESS_TOKEN", "value": "PEGA_TU_TOKEN_AQUI" },
+    { "key": "REFRESH_TOKEN", "value": "PEGA_TU_REFRESH_TOKEN_AQUI" },
+    { "key": "TENANT_1_ID", "value": "a1000000-0000-4000-8000-000000000001" },
+    { "key": "BRANCH_1A_ID", "value": "b1000000-0000-4000-8000-000000000001" },
+    { "key": "BRANCH_1B_ID", "value": "b1000000-0000-4000-8000-000000000002" },
+    { "key": "TENANT_2_ID", "value": "a2000000-0000-4000-8000-000000000002" },
+    { "key": "USER_OWNER_T1", "value": "d1000000-0000-4000-8000-000000000001" },
+    { "key": "USER_ADMIN_T1", "value": "d1000000-0000-4000-8000-000000000002" },
+    { "key": "USER_ACCOUNTANT_T1", "value": "d1000000-0000-4000-8000-000000000003" },
+    { "key": "USER_WAREHOUSE_T1", "value": "d1000000-0000-4000-8000-000000000004" },
+    { "key": "USER_CASHIER_T1", "value": "d1000000-0000-4000-8000-000000000005" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login OWNER Tenant1",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"owner@techsolutions.com\",\n  \"password\": \"Password123*\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login ADMIN Tenant1",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@techsolutions.com\",\n  \"password\": \"Password123*\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login ACCOUNTANT Tenant1",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"accountant@techsolutions.com\",\n  \"password\": \"Password123*\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login WAREHOUSE_MANAGER Tenant1",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"warehouse@techsolutions.com\",\n  \"password\": \"Password123*\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login CASHIER Tenant1",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cashier@techsolutions.com\",\n  \"password\": \"Password123*\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login OWNER Tenant2 (RLS Test)",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"owner@andina.com\",\n  \"password\": \"Password123*\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET /auth/me - Mi Perfil",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/auth/me",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        },
+        {
+          "name": "POST /auth/refresh - Renovar Token",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/auth/refresh",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{REFRESH_TOKEN}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /auth/logout - Cerrar Sesion",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/auth/logout",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tenants",
+      "item": [
+        {
+          "name": "GET /tenants/current",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/tenants/current",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        },
+        {
+          "name": "POST /tenants - Crear Empresa",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/tenants",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nitRut\": \"900555777-3\",\n  \"businessName\": \"Distribuidora Sur SAS\",\n  \"tradeName\": \"Sur Market\",\n  \"address\": \"Calle 50 # 30-20 Cali\",\n  \"phone\": \"+573204445566\",\n  \"email\": \"contacto@surmarket.com\",\n  \"countryCode\": \"COL\",\n  \"currencyCode\": \"COP\",\n  \"taxRegime\": \"RESPONSABLE_IVA\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH /tenants/current - Actualizar",
+          "request": {
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/v1/tenants/current",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tradeName\": \"TechStore Global Pro\",\n  \"address\": \"Calle 10 # 20-30 Torre A\"\n}"
+            }
+          }
+        },
+        {
+          "name": "DELETE /tenants/current - Desactivar [PRECAUCION]",
+          "request": {
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/v1/tenants/current",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Branches",
+      "item": [
+        {
+          "name": "GET /branches - Listar",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/branches",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        },
+        {
+          "name": "GET /branches/:id",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/branches/{{BRANCH_1A_ID}}",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        },
+        {
+          "name": "POST /branches - Crear",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/branches",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sede Occidente\",\n  \"address\": \"Av. Boyaca # 64-75\",\n  \"phone\": \"+573001119988\",\n  \"isActive\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH /branches/:id - Actualizar",
+          "request": {
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/v1/branches/{{BRANCH_1A_ID}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"Calle 10 # 20-30 Piso 3\",\n  \"phone\": \"+573001234568\"\n}"
+            }
+          }
+        },
+        {
+          "name": "DELETE /branches/:id - Eliminar (Soft)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/v1/branches/{{BRANCH_1B_ID}}",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "GET /users - Listar todos",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/users",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        },
+        {
+          "name": "GET /users?role=ACCOUNTANT",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/users?role=ACCOUNTANT",
+              "query": [{ "key": "role", "value": "ACCOUNTANT" }]
+            },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        },
+        {
+          "name": "GET /users/:id",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/users/{{USER_ADMIN_T1}}",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        },
+        {
+          "name": "POST /users - Crear usuario",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/users",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Laura\",\n  \"lastName\": \"Gonzalez\",\n  \"documentType\": \"CC\",\n  \"documentNumber\": \"1099887766\",\n  \"email\": \"laura.gonzalez@techsolutions.com\",\n  \"password\": \"Password123*\",\n  \"phone\": \"+573156667788\",\n  \"role\": \"ACCOUNTANT\",\n  \"branchName\": \"Sede Principal Bogota\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH /users/:id - Actualizar perfil",
+          "request": {
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/v1/users/{{USER_ACCOUNTANT_T1}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Camilo Contador Actualizado\",\n  \"phone\": \"+573001113333\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH /users/:id/status - Activar-Desactivar",
+          "request": {
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/v1/users/{{USER_CASHIER_T1}}/status",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /users/:id/reset-password",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/users/{{USER_ACCOUNTANT_T1}}/reset-password",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"NewPassword456*\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH /users/:id/role - Cambiar rol (solo OWNER)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/v1/users/{{USER_ACCOUNTANT_T1}}/role",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"ADMIN\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET /users/:id/audit-trail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/users/{{USER_OWNER_T1}}/audit-trail?page=1&limit=10",
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        },
+        {
+          "name": "DELETE /users/:id (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/v1/users/{{USER_WAREHOUSE_T1}}",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pruebas RLS y RBAC",
+      "item": [
+        {
+          "name": "[RLS] Tenant2 lista usuarios - debe ver solo los suyos",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/users",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        },
+        {
+          "name": "[RBAC] CASHIER crea usuario - esperado 403",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/users",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"Forbidden\",\n  \"documentType\": \"CC\",\n  \"documentNumber\": \"9999999999\",\n  \"email\": \"test.forbidden@techsolutions.com\",\n  \"password\": \"Password123*\",\n  \"phone\": \"+573000000001\",\n  \"role\": \"CASHIER\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+
