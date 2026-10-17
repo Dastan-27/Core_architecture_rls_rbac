@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Injectable,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { TOKEN_SERVICE_PORT } from '../../../domain/ports/token-service.port.js';
@@ -17,6 +18,8 @@ import {
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
+  private readonly logger = new Logger(JwtAuthGuard.name);
+
   constructor(
     @Inject(TOKEN_SERVICE_PORT)
     private readonly tokenService: TokenServicePort,
@@ -35,12 +38,29 @@ export class JwtAuthGuard implements CanActivate {
     try {
       const payload = await this.tokenService.verify(token);
 
-      const isActive = await this.sessionCache.isSessionActive(
-        payload.sub,
-        payload.jti,
-      );
-      if (!isActive) {
-        throw new SessionExpiredException();
+      try {
+        const isActive = await this.sessionCache.isSessionActive(
+          payload.sub,
+          payload.jti,
+        );
+        if (!isActive) {
+          throw new SessionExpiredException();
+        }
+      } catch (cacheErr) {
+        if (cacheErr instanceof SessionExpiredException) {
+          throw cacheErr;
+        }
+        if (cacheErr instanceof SessionCacheUnavailableException) {
+          const isStrict = process.env.AUTH_SESSION_CACHE_STRICT === 'true';
+          if (isStrict) {
+            throw cacheErr;
+          }
+          this.logger.warn(
+            `Redis session cache no disponible para usuario ${payload.sub}. Fail-open/degraded mode aplicado por firma JWT válida.`,
+          );
+        } else {
+          throw cacheErr;
+        }
       }
 
       (request as any).user = {

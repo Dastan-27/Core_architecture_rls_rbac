@@ -11,16 +11,17 @@ import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateUserDto {
-  @ApiProperty({ description: 'Nombre del usuario' })
+  @ApiProperty({ description: 'Nombre del usuario', example: 'Juan' })
   @IsString()
   firstName: string;
 
-  @ApiProperty({ description: 'Apellido del usuario' })
+  @ApiProperty({ description: 'Apellido del usuario', example: 'Pérez' })
   @IsString()
   lastName: string;
 
   @ApiProperty({
     description: 'Correo electrónico válido (debe terminar en .com)',
+    example: 'juan.perez@techsolutions.com',
   })
   @IsEmail()
   @Matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$/, {
@@ -28,13 +29,17 @@ export class CreateUserDto {
   })
   email: string;
 
-  @ApiProperty({ description: 'Contraseña del usuario' })
+  @ApiProperty({
+    description: 'Contraseña del usuario',
+    example: 'Password123*',
+  })
   @IsString()
   password: string;
 
   @ApiProperty({
     description: 'Tipo de documento',
     enum: ['C.C', 'CE', 'PASAPORTE'],
+    example: 'C.C',
   })
   @IsString()
   @IsIn(['C.C', 'CE', 'PASAPORTE'], {
@@ -49,6 +54,7 @@ export class CreateUserDto {
   @ApiProperty({
     description:
       'Número de documento (numérico max 11 para C.C/CE, alfanumérico max 9 para PASAPORTE)',
+    example: '1098765432',
   })
   @IsString()
   @ValidateIf((o) => o.documentType === 'C.C' || o.documentType === 'CE')
@@ -76,7 +82,8 @@ export class CreateUserDto {
   phone: string;
 
   @ApiPropertyOptional({
-    description: 'Nombre de la sucursal (ej: Sede Principal (Bogotá))',
+    description: 'Nombre de la sucursal (ej: Sede Principal Bogotá)',
+    example: 'Sede Principal Bogotá',
   })
   @IsString()
   @IsOptional()
@@ -104,7 +111,7 @@ export class UpdateUserProfileDto {
 
   @ApiPropertyOptional({
     description: 'UUID de la sucursal',
-    example: 'b2000000-0000-4000-8000-000000000001',
+    example: 'b1000000-0000-4000-8000-000000000001',
   })
   @IsString()
   @IsOptional()
@@ -117,7 +124,10 @@ export class UpdateUserStatusDto {
 }
 
 export class ResetPasswordDto {
-  @ApiProperty({ description: 'Nueva contraseña', example: 'NuevaPass2026!' })
+  @ApiProperty({
+    description: 'Nueva contraseña',
+    example: 'NuevaPassword123*',
+  })
   @IsString()
   newPassword: string;
 }

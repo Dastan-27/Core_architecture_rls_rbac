@@ -74,6 +74,11 @@ async function runSeed() {
       END $$;
     `);
 
+    // Restricción de unicidad para número de documento
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_users_document_number ON users (document_number);
+    `);
+
     // ─────────────────────────────────────────────────────────────────────────
     // 1. TENANTS (2 Empresas)
     // ─────────────────────────────────────────────────────────────────────────
@@ -401,4 +406,4 @@ async function runSeed() {
   }
 }
 
-runSeed();
+void runSeed();

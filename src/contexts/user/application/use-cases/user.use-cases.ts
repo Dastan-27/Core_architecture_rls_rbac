@@ -12,10 +12,11 @@ import {
   UserNotFoundException,
   EmailAlreadyRegisteredException,
   PasswordRequiredException,
+  DocumentAlreadyRegisteredException,
 } from '../../domain/exceptions/user.exceptions.js';
 
-import { SESSION_CACHE_PORT } from '../../../auth/domain/ports/session-cache.port.js';
-import type { SessionCachePort } from '../../../auth/domain/ports/session-cache.port.js';
+import { USER_SESSION_INVALIDATOR_PORT } from '../../domain/ports/user-session-invalidator.port.js';
+import type { UserSessionInvalidatorPort } from '../../domain/ports/user-session-invalidator.port.js';
 import { InsufficientPermissionsException } from '../../../rbac/domain/exceptions/insufficient-permissions.exception.js';
 
 // ─── Commands ───────────────────────────────────────────────────────────────
@@ -68,6 +69,16 @@ export class CreateUserUseCase {
     const existing = await this.userRepository.findByEmail(command.email);
     if (existing) {
       throw new EmailAlreadyRegisteredException(command.email);
+    }
+
+    const existingDoc = await this.userRepository.findByDocumentNumber(
+      command.documentNumber,
+    );
+    if (existingDoc) {
+      throw new DocumentAlreadyRegisteredException(
+        command.documentType,
+        command.documentNumber,
+      );
     }
 
     const user = User.create({
@@ -154,8 +165,8 @@ export class UpdateUserStatusUseCase {
   constructor(
     @Inject(USER_REPOSITORY_PORT)
     private readonly userRepository: UserRepositoryPort,
-    @Inject(SESSION_CACHE_PORT)
-    private readonly sessionCache: SessionCachePort,
+    @Inject(USER_SESSION_INVALIDATOR_PORT)
+    private readonly sessionCache: UserSessionInvalidatorPort,
   ) {}
 
   async execute(command: UpdateUserStatusCommand): Promise<void> {
@@ -183,8 +194,8 @@ export class ResetPasswordUseCase {
   constructor(
     @Inject(USER_REPOSITORY_PORT)
     private readonly userRepository: UserRepositoryPort,
-    @Inject(SESSION_CACHE_PORT)
-    private readonly sessionCache: SessionCachePort,
+    @Inject(USER_SESSION_INVALIDATOR_PORT)
+    private readonly sessionCache: UserSessionInvalidatorPort,
   ) {}
 
   async execute(command: ResetPasswordCommand): Promise<void> {
@@ -213,8 +224,8 @@ export class DeleteUserUseCase {
   constructor(
     @Inject(USER_REPOSITORY_PORT)
     private readonly userRepository: UserRepositoryPort,
-    @Inject(SESSION_CACHE_PORT)
-    private readonly sessionCache: SessionCachePort,
+    @Inject(USER_SESSION_INVALIDATOR_PORT)
+    private readonly sessionCache: UserSessionInvalidatorPort,
   ) {}
 
   async execute(

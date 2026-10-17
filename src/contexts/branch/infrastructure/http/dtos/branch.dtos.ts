@@ -5,7 +5,7 @@ import {
   IsOptional,
   IsBoolean,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateBranchDto {
   @ApiProperty({
@@ -46,27 +46,30 @@ export class CreateBranchDto {
 }
 
 export class UpdateBranchDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Nombre de la sucursal',
     maxLength: 20,
-    required: false,
+    example: 'Sede Principal Bogotá',
   })
   @IsOptional()
   @IsString()
   @MaxLength(20, { message: 'El nombre no puede superar los 20 caracteres' })
   name?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Dirección de la sucursal',
     maxLength: 50,
-    required: false,
+    example: 'Calle 10 # 20-30 Piso 2',
   })
   @IsOptional()
   @IsString()
   @MaxLength(50, { message: 'La dirección no puede superar los 50 caracteres' })
   address?: string;
 
-  @ApiProperty({ description: 'Teléfono', required: false })
+  @ApiPropertyOptional({
+    description: 'Teléfono',
+    example: '3001234567',
+  })
   @IsOptional()
   @IsString()
   @Matches(/^[0-9]{1,15}$/, {
@@ -74,9 +77,9 @@ export class UpdateBranchDto {
   })
   phone?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Indica si la sucursal está activa',
-    required: false,
+    example: true,
   })
   @IsOptional()
   @IsBoolean()

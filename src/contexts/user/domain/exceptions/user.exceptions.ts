@@ -21,3 +21,13 @@ export class PasswordRequiredException extends DomainException {
     super('La nueva contraseña es requerida', 'PASSWORD_REQUIRED', 400);
   }
 }
+
+export class DocumentAlreadyRegisteredException extends DomainException {
+  constructor(documentType: string, documentNumber: string) {
+    super(
+      `El documento ${documentType} con número '${documentNumber}' ya está registrado`,
+      'DOCUMENT_ALREADY_REGISTERED',
+      409,
+    );
+  }
+}

@@ -17,6 +17,7 @@ import { PostgresTenantRepository } from '../../tenant/infrastructure/persistenc
 import { LoginUseCase } from '../application/use-cases/login.use-case.js';
 import { RefreshTokenUseCase } from '../application/use-cases/refresh-token.use-case.js';
 import { GetProfileUseCase } from '../application/use-cases/get-profile.use-case.js';
+import { LogoutUseCase } from '../application/use-cases/logout.use-case.js';
 
 import { JwtAuthGuard } from './http/guards/jwt-auth.guard.js';
 import { RateLimitGuard } from '../../../shared/infrastructure/http/guards/rate-limit.guard.js';
@@ -46,6 +47,7 @@ import { AuthController } from './http/auth.controller.js';
     LoginUseCase,
     RefreshTokenUseCase,
     GetProfileUseCase,
+    LogoutUseCase,
 
     // Guards
     JwtAuthGuard,
@@ -57,6 +59,7 @@ import { AuthController } from './http/auth.controller.js';
     TOKEN_SERVICE_PORT,
     SESSION_CACHE_PORT,
     PASSWORD_HASHER_PORT,
+    LogoutUseCase,
   ],
 })
 export class AuthModule {}

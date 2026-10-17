@@ -44,30 +44,30 @@ export class RateLimitGuard implements CanActivate {
     const routeIdentifier = `${req.method}:${req.baseUrl || ''}${req.path || ''}`;
     const key = `${options.keyPrefix ?? 'rl'}:${routeIdentifier}:${identifier}`;
 
-    try {
-      const pipeline = this.redis.pipeline();
-      pipeline.incr(key);
-      pipeline.ttl(key);
-      const results = await pipeline.exec();
+    const SCRIPT = `
+      local current = redis.call('INCR', KEYS[1])
+      local ttl = redis.call('TTL', KEYS[1])
+      if ttl == -1 or current == 1 then
+        redis.call('EXPIRE', KEYS[1], ARGV[1])
+        ttl = tonumber(ARGV[1])
+      end
+      return {current, ttl}
+    `;
 
-      if (!results) {
+    try {
+      const results = (await this.redis.eval(
+        SCRIPT,
+        1,
+        key,
+        options.ttlSeconds.toString(),
+      )) as [number, number];
+
+      if (!results || results.length < 2) {
         return true;
       }
 
-      const [incrErr, currentCount] = results[0] as [Error | null, number];
-      const [ttlErr, currentTtl] = results[1] as [Error | null, number];
-
-      if (incrErr || ttlErr) {
-        this.logger.warn(
-          `Error en pipeline de rate limiting para clave ${key}: ${incrErr?.message ?? ttlErr?.message}`,
-        );
-        return true; // Fail-open
-      }
-
-      // Si es el primer incremento o la clave no tenía expiración configurada, setear TTL
-      if (currentCount === 1 || currentTtl === -1) {
-        await this.redis.expire(key, options.ttlSeconds);
-      }
+      const currentCount = Number(results[0]);
+      const currentTtl = Number(results[1]);
 
       const remaining = Math.max(0, options.limit - currentCount);
       const ttl = currentTtl > 0 ? currentTtl : options.ttlSeconds;

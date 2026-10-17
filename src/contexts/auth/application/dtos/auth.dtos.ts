@@ -9,13 +9,16 @@ export class LoginDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ description: 'Contraseña', example: 'OwnerPass2026!' })
+  @ApiProperty({ description: 'Contraseña', example: 'Password123*' })
   @IsString()
   password: string;
 }
 
 export class RefreshDto {
-  @ApiProperty({ description: 'Token de refresco' })
+  @ApiProperty({
+    description: 'Token de refresco',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  })
   @IsString()
   refreshToken: string;
 }

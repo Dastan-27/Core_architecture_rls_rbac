@@ -9,6 +9,7 @@ export class DatabaseService implements OnApplicationBootstrap {
 
   async onApplicationBootstrap(): Promise<void> {
     await this.verifyConnection();
+    await this.ensureSchemaConstraints();
   }
 
   async verifyConnection(): Promise<boolean> {
@@ -22,6 +23,21 @@ export class DatabaseService implements OnApplicationBootstrap {
         (error as Error).stack,
       );
       throw error;
+    }
+  }
+
+  async ensureSchemaConstraints(): Promise<void> {
+    try {
+      await this.dataSource.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_users_document_number ON users (document_number);
+      `);
+      this.logger.log(
+        'Restricción única de documento (uq_users_document_number) verificada en BD',
+      );
+    } catch (error) {
+      this.logger.warn(
+        `No se pudo sincronizar uq_users_document_number: ${(error as Error).message}`,
+      );
     }
   }
 

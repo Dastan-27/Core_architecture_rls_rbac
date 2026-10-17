@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { USER_REPOSITORY_PORT } from '../domain/ports/user-repository.port.js';
+import { USER_SESSION_INVALIDATOR_PORT } from '../domain/ports/user-session-invalidator.port.js';
+import { SESSION_CACHE_PORT } from '../../auth/domain/ports/session-cache.port.js';
 import { PostgresUserRepository } from './persistence/postgres-user.repository.js';
 import {
   CreateUserUseCase,
@@ -22,6 +24,10 @@ import { AuditModule } from '../../audit/infrastructure/audit.module.js';
   controllers: [UsersController],
   providers: [
     { provide: USER_REPOSITORY_PORT, useClass: PostgresUserRepository },
+    {
+      provide: USER_SESSION_INVALIDATOR_PORT,
+      useExisting: SESSION_CACHE_PORT,
+    },
     CreateUserUseCase,
     ListUsersUseCase,
     GetUserUseCase,

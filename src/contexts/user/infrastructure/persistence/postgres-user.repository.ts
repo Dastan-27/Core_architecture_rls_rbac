@@ -42,6 +42,29 @@ export class PostgresUserRepository
     });
   }
 
+  async findByDocumentNumber(documentNumber: string): Promise<User | null> {
+    const qr = RlsContext.getQueryRunner();
+
+    if (qr) {
+      const result = await qr.query(
+        'SELECT * FROM users WHERE document_number = $1 LIMIT 1',
+        [documentNumber],
+      );
+      if (result.length === 0) return null;
+      return this.mapToEntity(result[0]);
+    }
+
+    return await this.dataSource.transaction(async (manager) => {
+      await manager.query("SET LOCAL app.bypass_rls = 'on'");
+      const result = await manager.query(
+        'SELECT * FROM users WHERE document_number = $1 LIMIT 1',
+        [documentNumber],
+      );
+      if (result.length === 0) return null;
+      return this.mapToEntity(result[0]);
+    });
+  }
+
   async findById(id: string): Promise<User | null> {
     const result = await this.queryFn(
       'SELECT * FROM users WHERE id = $1 LIMIT 1',
