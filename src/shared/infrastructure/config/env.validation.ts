@@ -17,6 +17,10 @@ const rules: readonly ValidationRule[] = [
     message:
       'DB_PASSWORD es obligatorio cuando se usan variables individuales de conexion',
   },
+  {
+    check: (config) => Boolean(config.REDIS_URL) || Boolean(config.REDIS_HOST),
+    message: 'Redis no configurado: proporciona REDIS_URL o REDIS_HOST',
+  },
 ];
 
 export function validateEnvironment(

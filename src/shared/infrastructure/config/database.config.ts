@@ -16,21 +16,18 @@ export interface DatabaseConfig {
   readonly isProduction: boolean;
 }
 
-export default registerAs(
-  DATABASE_CONFIG_KEY,
-  (): DatabaseConfig => ({
-    url: process.env.DATABASE_URL,
-    host: process.env.DB_HOST ?? 'localhost',
-    port: parseInt(process.env.DB_PORT ?? '5432', 10),
-    username: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    ssl: process.env.DB_SSL === 'true',
-    sslCa: process.env.DB_SSL_CA,
-    sslCaPath: process.env.DB_SSL_CA_PATH,
-    synchronize:
-      process.env.DB_SYNCHRONIZE === 'true' &&
-      process.env.NODE_ENV !== 'production',
-    isProduction: process.env.NODE_ENV === 'production',
-  }),
-);
+export default registerAs(DATABASE_CONFIG_KEY, (): DatabaseConfig => ({
+  url: process.env.DATABASE_URL,
+  host: process.env.DB_HOST ?? 'localhost',
+  port: parseInt(process.env.DB_PORT ?? '5432', 10),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  ssl: process.env.DB_SSL === 'true',
+  sslCa: process.env.DB_SSL_CA,
+  sslCaPath: process.env.DB_SSL_CA_PATH,
+  synchronize:
+    process.env.DB_SYNCHRONIZE === 'true' &&
+    process.env.NODE_ENV !== 'production',
+  isProduction: process.env.NODE_ENV === 'production',
+}));

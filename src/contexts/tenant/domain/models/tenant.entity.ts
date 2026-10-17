@@ -11,7 +11,7 @@ export class Tenant {
     public currencyCode: string = 'COP',
     public isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
-  ) { }
+  ) {}
 
   updateContactInfo(address: string, phone: string, email: string): void {
     this.address = address;

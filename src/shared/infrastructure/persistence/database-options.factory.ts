@@ -3,10 +3,7 @@ import * as path from 'node:path';
 
 import { Inject, Injectable } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
-import {
-  TypeOrmModuleOptions,
-  TypeOrmOptionsFactory,
-} from '@nestjs/typeorm';
+import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 
 import databaseConfig from '../config/database.config.js';
 
@@ -15,7 +12,7 @@ export class DatabaseOptionsFactory implements TypeOrmOptionsFactory {
   constructor(
     @Inject(databaseConfig.KEY)
     private readonly dbConfig: ConfigType<typeof databaseConfig>,
-  ) { }
+  ) {}
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
     const baseOptions = this.buildBaseOptions();
@@ -94,8 +91,6 @@ export class DatabaseOptionsFactory implements TypeOrmOptionsFactory {
       this.dbConfig.sslCaPath ??
       path.resolve(process.cwd(), 'certs/isrgrootx1.pem');
 
-    return fs.existsSync(caPath)
-      ? fs.readFileSync(caPath, 'utf8')
-      : undefined;
+    return fs.existsSync(caPath) ? fs.readFileSync(caPath, 'utf8') : undefined;
   }
 }

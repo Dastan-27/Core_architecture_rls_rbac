@@ -1,18 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { BasePostgresRepository } from '../../../../shared/infrastructure/persistence/base-postgres.repository.js';
 import type { BranchRepositoryPort } from '../../domain/ports/branch-repository.port.js';
 import { Branch } from '../../domain/models/branch.entity.js';
-import { RlsContext } from '../../../../shared/infrastructure/persistence/rls/rls.context.js';
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 @Injectable()
-export class PostgresBranchRepository implements BranchRepositoryPort {
-  constructor(private readonly dataSource: DataSource) { }
-
-  private get queryFn(): (sql: string, params?: unknown[]) => Promise<any[]> {
-    const qr = RlsContext.getQueryRunner();
-    return qr ? qr.query.bind(qr) : this.dataSource.query.bind(this.dataSource);
+export class PostgresBranchRepository
+  extends BasePostgresRepository
+  implements BranchRepositoryPort
+{
+  constructor(dataSource: DataSource) {
+    super(dataSource);
   }
 
   private isUuid(value: string): boolean {
@@ -20,11 +21,17 @@ export class PostgresBranchRepository implements BranchRepositoryPort {
   }
 
   async findAll(tenantId: string): Promise<Branch[]> {
-    const rows = await this.queryFn('SELECT * FROM branches WHERE tenant_id = $1', [tenantId]);
+    const rows = await this.queryFn(
+      'SELECT * FROM branches WHERE tenant_id = $1',
+      [tenantId],
+    );
     return rows.map((r) => this.mapToEntity(r));
   }
 
-  async findByIdentifier(tenantId: string, identifier: string): Promise<Branch | null> {
+  async findByIdentifier(
+    tenantId: string,
+    identifier: string,
+  ): Promise<Branch | null> {
     const condition = this.isUuid(identifier) ? 'id = $2' : 'name = $2';
     const result = await this.queryFn(
       `SELECT * FROM branches WHERE tenant_id = $1 AND ${condition}`,
@@ -34,8 +41,12 @@ export class PostgresBranchRepository implements BranchRepositoryPort {
   }
 
   async create(
-    tenantId: string, code: string, name: string,
-    address?: string | null, phone?: string | null, isActive?: boolean,
+    tenantId: string,
+    code: string,
+    name: string,
+    address?: string | null,
+    phone?: string | null,
+    isActive?: boolean,
   ): Promise<Branch> {
     const result = await this.queryFn(
       `INSERT INTO branches (tenant_id, code, name, address, phone, is_active)
@@ -46,8 +57,12 @@ export class PostgresBranchRepository implements BranchRepositoryPort {
   }
 
   async update(
-    tenantId: string, identifier: string,
-    name?: string, address?: string | null, phone?: string | null, isActive?: boolean,
+    tenantId: string,
+    identifier: string,
+    name?: string,
+    address?: string | null,
+    phone?: string | null,
+    isActive?: boolean,
   ): Promise<Branch | null> {
     const condition = this.isUuid(identifier) ? 'id = $6' : 'name = $6';
     const result = await this.queryFn(
@@ -73,9 +88,13 @@ export class PostgresBranchRepository implements BranchRepositoryPort {
 
   private mapToEntity(row: Record<string, unknown>): Branch {
     return new Branch(
-      row.id as string, row.tenant_id as string, row.code as string,
-      row.name as string, (row.address as string) ?? null,
-      (row.phone as string) ?? null, row.is_active as boolean,
+      row.id as string,
+      row.tenant_id as string,
+      row.code as string,
+      row.name as string,
+      (row.address as string) ?? null,
+      (row.phone as string) ?? null,
+      row.is_active as boolean,
       row.created_at as Date,
     );
   }

@@ -26,7 +26,7 @@ export class ListBranchesUseCase {
   constructor(
     @Inject(BRANCH_REPOSITORY_PORT)
     private readonly branchRepository: BranchRepositoryPort,
-  ) { }
+  ) {}
 
   async execute(tenantId: string): Promise<Branch[]> {
     return this.branchRepository.findAll(tenantId);
@@ -38,10 +38,13 @@ export class GetBranchUseCase {
   constructor(
     @Inject(BRANCH_REPOSITORY_PORT)
     private readonly branchRepository: BranchRepositoryPort,
-  ) { }
+  ) {}
 
   async execute(tenantId: string, identifier: string): Promise<Branch> {
-    const branch = await this.branchRepository.findByIdentifier(tenantId, identifier);
+    const branch = await this.branchRepository.findByIdentifier(
+      tenantId,
+      identifier,
+    );
     if (!branch) {
       throw new BranchNotFoundException(identifier);
     }
@@ -54,13 +57,18 @@ export class CreateBranchUseCase {
   constructor(
     @Inject(BRANCH_REPOSITORY_PORT)
     private readonly branchRepository: BranchRepositoryPort,
-  ) { }
+  ) {}
 
   async execute(command: CreateBranchCommand): Promise<Branch> {
-    const code = 'BR-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const code =
+      'BR-' + Math.random().toString(36).substring(2, 8).toUpperCase();
     return this.branchRepository.create(
-      command.tenantId, code, command.name,
-      command.address, command.phone, command.isActive,
+      command.tenantId,
+      code,
+      command.name,
+      command.address,
+      command.phone,
+      command.isActive,
     );
   }
 }
@@ -70,12 +78,16 @@ export class UpdateBranchUseCase {
   constructor(
     @Inject(BRANCH_REPOSITORY_PORT)
     private readonly branchRepository: BranchRepositoryPort,
-  ) { }
+  ) {}
 
   async execute(command: UpdateBranchCommand): Promise<Branch> {
     const updated = await this.branchRepository.update(
-      command.tenantId, command.identifier,
-      command.name, command.address, command.phone, command.isActive,
+      command.tenantId,
+      command.identifier,
+      command.name,
+      command.address,
+      command.phone,
+      command.isActive,
     );
     if (!updated) {
       throw new BranchNotFoundException(command.identifier);
@@ -89,10 +101,13 @@ export class DeleteBranchUseCase {
   constructor(
     @Inject(BRANCH_REPOSITORY_PORT)
     private readonly branchRepository: BranchRepositoryPort,
-  ) { }
+  ) {}
 
   async execute(tenantId: string, identifier: string): Promise<void> {
-    const deleted = await this.branchRepository.softDelete(tenantId, identifier);
+    const deleted = await this.branchRepository.softDelete(
+      tenantId,
+      identifier,
+    );
     if (!deleted) {
       throw new BranchNotFoundException(identifier);
     }

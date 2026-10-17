@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { BasePostgresRepository } from '../../../../shared/infrastructure/persistence/base-postgres.repository.js';
 import type {
   TenantRepositoryPort,
   CreateTenantData,
@@ -7,26 +8,28 @@ import type {
   DeactivateTenantResult,
 } from '../../domain/ports/tenant-repository.port.js';
 import { Tenant } from '../../domain/models/tenant.entity.js';
-import { RlsContext } from '../../../../shared/infrastructure/persistence/rls/rls.context.js';
 
 @Injectable()
-export class PostgresTenantRepository implements TenantRepositoryPort {
-  constructor(private readonly dataSource: DataSource) { }
-
-  private get queryFn(): (sql: string, params?: unknown[]) => Promise<any[]> {
-    const qr = RlsContext.getQueryRunner();
-    return qr
-      ? qr.query.bind(qr)
-      : this.dataSource.query.bind(this.dataSource);
+export class PostgresTenantRepository
+  extends BasePostgresRepository
+  implements TenantRepositoryPort
+{
+  constructor(dataSource: DataSource) {
+    super(dataSource);
   }
 
   async findById(id: string): Promise<Tenant | null> {
-    const result = await this.queryFn('SELECT * FROM tenants WHERE id = $1', [id]);
+    const result = await this.queryFn('SELECT * FROM tenants WHERE id = $1', [
+      id,
+    ]);
     return result.length > 0 ? this.mapToEntity(result[0]) : null;
   }
 
   async findByNitRut(nitRut: string): Promise<Tenant | null> {
-    const result = await this.queryFn('SELECT * FROM tenants WHERE nit_rut = $1', [nitRut]);
+    const result = await this.queryFn(
+      'SELECT * FROM tenants WHERE nit_rut = $1',
+      [nitRut],
+    );
     return result.length > 0 ? this.mapToEntity(result[0]) : null;
   }
 
@@ -36,9 +39,15 @@ export class PostgresTenantRepository implements TenantRepositoryPort {
        VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, 'COL'), COALESCE($8, 'COP'), COALESCE($9, 'REGIMEN_SIMPLE'))
        RETURNING *`,
       [
-        data.nitRut, data.businessName, data.tradeName,
-        data.address, data.phone, data.email,
-        data.countryCode, data.currencyCode, data.taxRegime,
+        data.nitRut,
+        data.businessName,
+        data.tradeName,
+        data.address,
+        data.phone,
+        data.email,
+        data.countryCode,
+        data.currencyCode,
+        data.taxRegime,
       ],
     );
     return this.mapToEntity(result[0]);
@@ -58,8 +67,14 @@ export class PostgresTenantRepository implements TenantRepositoryPort {
        WHERE id = $8
        RETURNING *`,
       [
-        data.address, data.phone, data.email, data.tradeName,
-        data.countryCode, data.currencyCode, data.taxRegime, id,
+        data.address,
+        data.phone,
+        data.email,
+        data.tradeName,
+        data.countryCode,
+        data.currencyCode,
+        data.taxRegime,
+        id,
       ],
     );
     return result.length > 0 ? this.mapToEntity(result[0]) : null;

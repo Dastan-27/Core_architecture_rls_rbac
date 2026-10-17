@@ -33,7 +33,7 @@ export class TenantsController {
     private readonly createTenant: CreateTenantUseCase,
     private readonly updateTenant: UpdateTenantUseCase,
     private readonly deactivateTenant: DeactivateTenantUseCase,
-  ) { }
+  ) {}
 
   @ApiOperation({ summary: 'Obtener mi empresa' })
   @Get('current')

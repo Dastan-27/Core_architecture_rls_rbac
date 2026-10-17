@@ -11,4 +11,4 @@ import { RlsInterceptor } from './rls.interceptor.js';
     },
   ],
 })
-export class RlsModule { }
+export class RlsModule {}
