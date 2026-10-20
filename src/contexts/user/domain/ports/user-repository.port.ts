@@ -36,6 +36,7 @@ export interface UserRepositoryPort {
     fullName?: string,
     phone?: string | null,
     branchId?: string | null,
+    newTenantId?: string,
   ): Promise<UserWithBranch | null>;
   resetPassword(id: string, tenantId: string, newHash: string): Promise<void>;
   softDelete(id: string, tenantId: string): Promise<boolean>;

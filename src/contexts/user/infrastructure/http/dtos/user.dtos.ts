@@ -6,6 +6,7 @@ import {
   ValidateIf,
   IsOptional,
   Length,
+  IsUUID,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -97,6 +98,15 @@ export class CreateUserDto {
   @IsString()
   @IsIn(['OWNER', 'ADMIN', 'ACCOUNTANT', 'WAREHOUSE_MANAGER', 'CASHIER'])
   role: string;
+
+  @ApiPropertyOptional({
+    description:
+      'UUID de la empresa a la que pertenecerá el usuario (Opcional, exclusivo para rol OWNER). Si se omite, se usa la empresa del creador.',
+    example: 'a1000000-0000-4000-8000-000000000001',
+  })
+  @IsUUID()
+  @IsOptional()
+  tenantId?: string;
 }
 
 export class UpdateUserProfileDto {
@@ -120,6 +130,15 @@ export class UpdateUserProfileDto {
   @IsString()
   @IsOptional()
   branchId?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'UUID de la nueva empresa para transferir/reasignar al usuario (Opcional, exclusivo para rol OWNER).',
+    example: 'a1000000-0000-4000-8000-000000000001',
+  })
+  @IsUUID()
+  @IsOptional()
+  tenantId?: string;
 }
 
 export class UpdateUserStatusDto {

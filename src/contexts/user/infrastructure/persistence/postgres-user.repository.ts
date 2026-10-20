@@ -129,18 +129,25 @@ export class PostgresUserRepository
     fullName?: string,
     phone?: string | null,
     branchId?: string | null,
+    newTenantId?: string,
   ): Promise<UserWithBranch | null> {
+    const targetTenant = newTenantId ?? tenantId;
+    const targetBranch =
+      newTenantId !== undefined ? (branchId ?? null) : branchId;
+
     const result = await this.queryFn(
       `UPDATE users SET
          full_name  = COALESCE($1, full_name),
          phone      = COALESCE($2, phone),
-         branch_id  = COALESCE($3, branch_id),
+         branch_id  = ${newTenantId !== undefined ? '$3' : 'COALESCE($3, branch_id)'},
+         tenant_id  = $4,
          updated_at = CURRENT_TIMESTAMP
-       WHERE tenant_id = $4 AND id = $5
+       WHERE tenant_id = $5 AND id = $6
        RETURNING *`,
-      [fullName, phone, branchId, tenantId, id],
+      [fullName, phone, targetBranch, targetTenant, tenantId, id],
     );
-    return result.length > 0 ? (result[0] as UserWithBranch) : null;
+    if (result.length === 0) return null;
+    return this.findOneWithBranch(id, targetTenant);
   }
 
   async resetPassword(

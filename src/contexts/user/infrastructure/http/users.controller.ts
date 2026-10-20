@@ -43,6 +43,8 @@ import {
   DeleteUserUseCase,
 } from '../../application/use-cases/user.use-cases.js';
 import { GetBranchUseCase } from '../../../branch/application/use-cases/branch.use-cases.js';
+import { GetTenantUseCase } from '../../../tenant/application/use-cases/tenant.use-cases.js';
+import { InsufficientPermissionsException } from '../../../rbac/domain/exceptions/insufficient-permissions.exception.js';
 import { GetUserAuditTrailUseCase } from '../../../audit/application/use-cases/get-user-audit-trail.use-case.js';
 import { AuditQueryDto } from '../../../audit/application/dtos/audit-query.dto.js';
 import type { Role } from '../../../rbac/domain/models/role.enum.js';
@@ -66,11 +68,13 @@ export class UsersController {
     private readonly getBranch: GetBranchUseCase,
     private readonly assignRole: AssignRoleUseCase,
     private readonly getUserAuditTrail: GetUserAuditTrailUseCase,
+    private readonly getTenant: GetTenantUseCase,
   ) {}
 
   @ApiOperation({
     summary: 'Crear usuario',
-    description: 'Crea un nuevo usuario en el tenant actual.',
+    description:
+      'Crea un nuevo usuario en la empresa del llamante o en la empresa indicada (solo OWNER).',
   })
   @Post()
   @Roles('OWNER', 'ADMIN')
@@ -79,12 +83,31 @@ export class UsersController {
     @Body() dto: CreateUserDto,
     @Request() req: AuthenticatedRequest,
   ) {
+    const targetTenantId =
+      req.user.role === 'OWNER' && dto.tenantId
+        ? dto.tenantId
+        : req.user.tenantId;
+
+    if (
+      req.user.role !== 'OWNER' &&
+      dto.tenantId &&
+      dto.tenantId !== req.user.tenantId
+    ) {
+      throw new InsufficientPermissionsException(
+        'Solo el OWNER puede asignar usuarios a otra empresa',
+      );
+    }
+
+    if (targetTenantId !== req.user.tenantId) {
+      await this.getTenant.execute(targetTenantId);
+    }
+
     let branchId: string | null = null;
 
     // OWNER es transversal a toda la empresa; no se le asocia sucursal
     if (dto.role !== 'OWNER' && dto.branchName) {
       const branch = await this.getBranch.execute(
-        req.user.tenantId,
+        targetTenantId,
         dto.branchName,
       );
       branchId = branch.id;
@@ -94,7 +117,7 @@ export class UsersController {
     const passwordHash = await this.passwordHasher.hash(dto.password);
 
     return this.createUser.execute({
-      tenantId: req.user.tenantId,
+      tenantId: targetTenantId,
       branchId,
       documentType: dto.documentType,
       documentNumber: dto.documentNumber,
@@ -147,12 +170,32 @@ export class UsersController {
     @Body() dto: UpdateUserProfileDto,
     @Request() req: AuthenticatedRequest,
   ) {
+    if (
+      req.user.role !== 'OWNER' &&
+      dto.tenantId &&
+      dto.tenantId !== req.user.tenantId
+    ) {
+      throw new InsufficientPermissionsException(
+        'Solo el OWNER puede transferir un usuario a otra empresa',
+      );
+    }
+
+    let targetBranchId: string | null | undefined = dto.branchId;
+    if (
+      targetBranchId === 'NULL' ||
+      targetBranchId === 'null' ||
+      targetBranchId === ''
+    ) {
+      targetBranchId = null;
+    }
+
     return this.updateProfile.execute({
       id,
       tenantId: req.user.tenantId,
+      newTenantId: req.user.role === 'OWNER' ? dto.tenantId : undefined,
       fullName: dto.fullName,
       phone: dto.phone,
-      branchId: dto.branchId,
+      branchId: targetBranchId,
       requesterRole: req.user.role as Role,
     });
   }

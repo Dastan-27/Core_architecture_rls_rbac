@@ -19,6 +19,7 @@ import {
 import { USER_SESSION_INVALIDATOR_PORT } from '../../domain/ports/user-session-invalidator.port.js';
 import type { UserSessionInvalidatorPort } from '../../domain/ports/user-session-invalidator.port.js';
 import { InsufficientPermissionsException } from '../../../rbac/domain/exceptions/insufficient-permissions.exception.js';
+import { GetTenantUseCase } from '../../../tenant/application/use-cases/tenant.use-cases.js';
 
 // ─── Commands ───────────────────────────────────────────────────────────────
 
@@ -38,6 +39,7 @@ export interface CreateUserCommand {
 export interface UpdateUserProfileCommand {
   readonly id: string;
   readonly tenantId: string;
+  readonly newTenantId?: string;
   readonly fullName?: string;
   readonly phone?: string | null;
   readonly branchId?: string | null;
@@ -156,13 +158,25 @@ export class UpdateUserProfileUseCase {
   constructor(
     @Inject(USER_REPOSITORY_PORT)
     private readonly userRepository: UserRepositoryPort,
+    @Inject(USER_SESSION_INVALIDATOR_PORT)
+    private readonly sessionCache: UserSessionInvalidatorPort,
+    private readonly getTenant: GetTenantUseCase,
   ) {}
 
   async execute(command: UpdateUserProfileCommand): Promise<UserWithBranch> {
     const user = await this.userRepository.findById(command.id);
-    if (!user || user.tenantId !== command.tenantId) {
+    if (!user) {
       throw new UserNotFoundException(command.id);
     }
+
+    // Un usuario de otro tenant solo puede ser modificado por el rol OWNER
+    if (
+      command.requesterRole !== 'OWNER' &&
+      user.tenantId !== command.tenantId
+    ) {
+      throw new UserNotFoundException(command.id);
+    }
+
     if (command.requesterRole === 'ADMIN') {
       if (user.role === 'OWNER' || user.role === 'ADMIN') {
         throw new InsufficientPermissionsException(
@@ -171,12 +185,39 @@ export class UpdateUserProfileUseCase {
       }
     }
 
+    let targetTenantId = user.tenantId;
+    let branchId = command.branchId;
+
+    if (command.newTenantId && command.newTenantId !== user.tenantId) {
+      if (command.requesterRole !== 'OWNER') {
+        throw new InsufficientPermissionsException(
+          'Solo el OWNER puede transferir un usuario a otra empresa',
+        );
+      }
+
+      // Validar que la nueva empresa exista en el sistema
+      await this.getTenant.execute(command.newTenantId);
+      targetTenantId = command.newTenantId;
+
+      // Al cambiar de empresa, la sucursal de la empresa anterior ya no aplica
+      branchId = user.role === 'OWNER' ? null : (command.branchId ?? null);
+
+      // Invalidar tokens activos de la sesión anterior en Redis
+      await this.sessionCache.invalidateUserSessions(user.id);
+    }
+
+    // Los usuarios OWNER nunca tienen sucursal física asociada
+    if (user.role === 'OWNER') {
+      branchId = null;
+    }
+
     const updated = await this.userRepository.updateProfile(
       command.id,
-      command.tenantId,
+      user.tenantId,
       command.fullName,
       command.phone,
-      command.branchId,
+      branchId,
+      targetTenantId,
     );
     if (!updated) {
       throw new UserNotFoundException(command.id);

@@ -58,7 +58,8 @@ Es la máxima autoridad dentro del tenant. Representa al titular legal o creador
 * **Gestión de Sucursales:**
   * Crear, actualizar, consultar y eliminar sucursales (`/api/v1/branches`).
 * **Gestión Total de Usuarios y Seguridad:**
-  * Crear usuarios con cualquier rol (`OWNER`, `ADMIN`, `ACCOUNTANT`, `WAREHOUSE_MANAGER`, `CASHIER`).
+  * Crear usuarios con cualquier rol (`OWNER`, `ADMIN`, `ACCOUNTANT`, `WAREHOUSE_MANAGER`, `CASHIER`) en su empresa actual o en cualquier empresa del sistema mediante `tenantId`.
+  * Transferir y reasignar usuarios (incluyendo otros Owners) a cualquier empresa registrada (`PATCH /api/v1/users/:id` enviando `tenantId`).
   * Asignar y cambiar roles de cualquier usuario subordinado (`PATCH /api/v1/users/:id/role`).
   * Activar / desactivar usuarios y resetear contraseñas de cualquier miembro del tenant.
   * Eliminar usuarios (soft-delete).
@@ -220,6 +221,27 @@ Rol operativo de atención directa y cobro en mostrador.
     * `GET /api/v1/tenants`: Retorna la lista de todas las empresas activas registradas en el sistema con sus respectivos IDs (`tenant.id`), nombres, NIT, etc.
     * `GET /api/v1/tenants/:id`: Permite consultar el detalle de cualquier empresa específica por su UUID.
   * Ambos endpoints están protegidos exclusivamente con `@Roles('OWNER')`. Los demás roles reciben `403 Forbidden`.
+
+---
+
+### ✅ Problema 7: Asignación y Reasignación de Empresa a Usuarios por el OWNER — [RESUELTO]
+* **Diagnóstico anterior:** Cuando un `OWNER` creaba una nueva empresa (`POST /api/v1/tenants`), no podía asignar usuarios a esa nueva empresa ni transferir un usuario existente (por ejemplo, a sí mismo o a otro Owner), porque:
+  1. `POST /api/v1/users` obligaba a que el usuario se creara en `req.user.tenantId`.
+  2. `PATCH /api/v1/users/:id` rechazaba el atributo `tenantId` (`forbidNonWhitelisted`).
+* **Solución aplicada:**
+  * **Al crear (`POST /api/v1/users`):**
+    * Se habilitó el campo opcional `tenantId?: string` en `CreateUserDto`.
+    * Exclusivo para el rol `OWNER`: Si el `OWNER` envía `tenantId`, el usuario se crea directamente en esa empresa destino (validando previamente que el tenant exista).
+    * Si otro rol intenta enviar `tenantId` distinto al de su sesión, recibe `403 Forbidden` (`InsufficientPermissionsException`).
+  * **Al actualizar / transferir (`PATCH /api/v1/users/:id`):**
+    * Se habilitó el campo opcional `tenantId?: string` en `UpdateUserProfileDto`.
+    * Si el `OWNER` envía `tenantId`, el sistema:
+      1. Valida que el tenant de destino exista en el sistema.
+      2. Invalida todas las sesiones activas del usuario en Redis para revocar tokens con el `tenantId` anterior.
+      3. Desasocia la sucursal física previa (`branch_id = null`) para prevenir inconsistencias foráneas con sedes del tenant anterior.
+      4. Actualiza `tenant_id` en la tabla `users` mediante `PostgresUserRepository.updateProfile`.
+      5. Normaliza y sanitiza automáticamente `branchId: "NULL"` o `"null"` para prevenir errores de tipo en PostgreSQL.
+    * Si otro rol intenta modificar el `tenantId`, recibe `403 Forbidden`.
 
 ---
 

@@ -315,6 +315,19 @@
           }
         },
         {
+          "name": "PATCH /users/:id - Reasignar Empresa (solo OWNER)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/v1/users/{{USER_OWNER_T1}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Carlos Pérez\",\n  \"phone\": \"3009999999\",\n  \"tenantId\": \"{{TENANT_ID}}\"\n}"
+            }
+          }
+        },
+        {
           "name": "PATCH /users/:id/status - Activar-Desactivar",
           "request": {
             "method": "PATCH",

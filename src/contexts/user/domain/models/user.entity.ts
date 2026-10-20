@@ -68,6 +68,12 @@ export class User extends BaseTenantEntity {
     this.updatedAt = new Date();
   }
 
+  transferToTenant(newTenantId: string, newBranchId: string | null = null): void {
+    this.tenantId = newTenantId;
+    this.branchId = this.role === 'OWNER' ? null : newBranchId;
+    this.updatedAt = new Date();
+  }
+
   assignRole(newRole: Role): void {
     if (this.role === 'OWNER' && newRole !== 'OWNER') {
       throw new DomainException(

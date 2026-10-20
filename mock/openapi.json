@@ -389,7 +389,7 @@
     },
     "/api/v1/users": {
       "post": {
-        "description": "Crea un nuevo usuario en el tenant actual.",
+        "description": "Crea un nuevo usuario en la empresa del llamante o en la empresa indicada (solo OWNER).",
         "operationId": "UsersController_create",
         "parameters": [],
         "responses": {
