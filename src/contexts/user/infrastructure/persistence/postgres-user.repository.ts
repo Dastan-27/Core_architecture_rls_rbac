@@ -66,6 +66,10 @@ export class PostgresUserRepository
   }
 
   async findById(id: string): Promise<User | null> {
+    const qr = RlsContext.getQueryRunner();
+    if (qr) {
+      await qr.query("SET LOCAL app.bypass_rls = 'on'");
+    }
     const result = await this.queryFn(
       'SELECT * FROM users WHERE id = $1 LIMIT 1',
       [id],
@@ -113,6 +117,10 @@ export class PostgresUserRepository
     id: string,
     tenantId: string,
   ): Promise<UserWithBranch | null> {
+    const qr = RlsContext.getQueryRunner();
+    if (qr) {
+      await qr.query("SET LOCAL app.bypass_rls = 'on'");
+    }
     const result = await this.queryFn(
       `SELECT u.*, b.name AS branch_name
        FROM users u
@@ -135,19 +143,44 @@ export class PostgresUserRepository
     const targetBranch =
       newTenantId !== undefined ? (branchId ?? null) : branchId;
 
-    const result = await this.queryFn(
-      `UPDATE users SET
-         full_name  = COALESCE($1, full_name),
-         phone      = COALESCE($2, phone),
-         branch_id  = ${newTenantId !== undefined ? '$3' : 'COALESCE($3, branch_id)'},
-         tenant_id  = $4,
-         updated_at = CURRENT_TIMESTAMP
-       WHERE tenant_id = $5 AND id = $6
-       RETURNING *`,
-      [fullName, phone, targetBranch, targetTenant, tenantId, id],
-    );
-    if (result.length === 0) return null;
-    return this.findOneWithBranch(id, targetTenant);
+    const qr = RlsContext.getQueryRunner();
+    if (qr) {
+      if (newTenantId) {
+        await qr.query("SET LOCAL app.bypass_rls = 'on'");
+      }
+      const result = await qr.query(
+        `UPDATE users SET
+           full_name  = COALESCE($1, full_name),
+           phone      = COALESCE($2, phone),
+           branch_id  = ${newTenantId !== undefined ? '$3' : 'COALESCE($3, branch_id)'},
+           tenant_id  = $4,
+           updated_at = CURRENT_TIMESTAMP
+         WHERE id = $5
+         RETURNING *`,
+        [fullName, phone, targetBranch, targetTenant, id],
+      );
+      if (result.length === 0) return null;
+      return this.findOneWithBranch(id, targetTenant);
+    }
+
+    return await this.dataSource.transaction(async (manager) => {
+      if (newTenantId) {
+        await manager.query("SET LOCAL app.bypass_rls = 'on'");
+      }
+      const result = await manager.query(
+        `UPDATE users SET
+           full_name  = COALESCE($1, full_name),
+           phone      = COALESCE($2, phone),
+           branch_id  = ${newTenantId !== undefined ? '$3' : 'COALESCE($3, branch_id)'},
+           tenant_id  = $4,
+           updated_at = CURRENT_TIMESTAMP
+         WHERE id = $5
+         RETURNING *`,
+        [fullName, phone, targetBranch, targetTenant, id],
+      );
+      if (result.length === 0) return null;
+      return this.findOneWithBranch(id, targetTenant);
+    });
   }
 
   async resetPassword(
@@ -170,6 +203,10 @@ export class PostgresUserRepository
   }
 
   async save(user: User): Promise<User> {
+    const qr = RlsContext.getQueryRunner();
+    if (qr) {
+      await qr.query("SET LOCAL app.bypass_rls = 'on'");
+    }
     await this.queryFn(
       `INSERT INTO users (
         id, tenant_id, branch_id, document_type, document_number,
