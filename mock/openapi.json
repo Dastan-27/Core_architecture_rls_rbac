@@ -145,6 +145,45 @@
         ]
       }
     },
+    "/api/v1/tenants": {
+      "get": {
+        "description": "Devuelve la lista general de empresas registradas. Exclusivo para rol OWNER.",
+        "operationId": "TenantsController_getAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar todas las empresas",
+        "tags": [
+          "Tenants - Informacion de la Empresa"
+        ]
+      },
+      "post": {
+        "operationId": "TenantsController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear empresa",
+        "tags": [
+          "Tenants - Informacion de la Empresa"
+        ]
+      }
+    },
     "/api/v1/tenants/current": {
       "get": {
         "operationId": "TenantsController_getCurrentTenant",
@@ -201,12 +240,21 @@
         ]
       }
     },
-    "/api/v1/tenants": {
-      "post": {
-        "operationId": "TenantsController_create",
-        "parameters": [],
+    "/api/v1/tenants/{id}": {
+      "get": {
+        "description": "Devuelve los datos de una empresa específica por su UUID. Exclusivo para rol OWNER.",
+        "operationId": "TenantsController_getById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID de la empresa",
+            "schema": {}
+          }
+        ],
         "responses": {
-          "201": {
+          "200": {
             "description": ""
           }
         },
@@ -215,7 +263,7 @@
             "bearer": []
           }
         ],
-        "summary": "Crear empresa",
+        "summary": "Obtener empresa por ID",
         "tags": [
           "Tenants - Informacion de la Empresa"
         ]

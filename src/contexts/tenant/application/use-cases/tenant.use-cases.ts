@@ -17,6 +17,18 @@ import {
 } from '../../domain/exceptions/tenant.exceptions.js';
 
 @Injectable()
+export class ListTenantsUseCase {
+  constructor(
+    @Inject(TENANT_REPOSITORY_PORT)
+    private readonly tenantRepository: TenantRepositoryPort,
+  ) {}
+
+  async execute(): Promise<Tenant[]> {
+    return this.tenantRepository.findAll();
+  }
+}
+
+@Injectable()
 export class GetTenantUseCase {
   constructor(
     @Inject(TENANT_REPOSITORY_PORT)

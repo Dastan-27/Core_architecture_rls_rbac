@@ -52,6 +52,8 @@ Es la máxima autoridad dentro del tenant. Representa al titular legal o creador
 * **Ámbito:** Transversal a toda la empresa. **NO está asignado a ninguna sucursal** (`branch_id = null`), pues su rol es supervisar y gobernar todas las sedes.
 * **Gobierno de la Empresa:**
   * Consultar, modificar y desactivar (soft-delete) su empresa actual (`/api/v1/tenants/current`).
+  * Listar todas las empresas (`GET /api/v1/tenants`) para obtener los IDs de todas las empresas creadas en el sistema.
+  * Consultar cualquier empresa por su identificador UUID (`GET /api/v1/tenants/:id`).
   * Crear nuevas empresas (`POST /api/v1/tenants`).
 * **Gestión de Sucursales:**
   * Crear, actualizar, consultar y eliminar sucursales (`/api/v1/branches`).
@@ -128,6 +130,8 @@ Rol operativo de atención directa y cobro en mostrador.
 | **Auth** | `POST` | `/api/v1/auth/refresh` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Auth** | `POST` | `/api/v1/auth/logout` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Auth** | `GET` | `/api/v1/auth/me` | ✅ *(con IDs)* | ✅ *(con IDs)* | ✅ *(básico)* | ✅ *(básico)* | ✅ *(básico)* |
+| **Tenants** | `GET` | `/api/v1/tenants` | ✅ *(listar todas)* | ❌ 403 | ❌ 403 | ❌ 403 | ❌ 403 |
+| **Tenants** | `GET` | `/api/v1/tenants/:id` | ✅ *(por ID)* | ❌ 403 | ❌ 403 | ❌ 403 | ❌ 403 |
 | **Tenants** | `GET` | `/api/v1/tenants/current` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Tenants** | `POST` | `/api/v1/tenants` | ✅ | ❌ 403 | ❌ 403 | ❌ 403 | ❌ 403 |
 | **Tenants** | `PATCH` | `/api/v1/tenants/current` | ✅ | ✅ | ❌ 403 | ❌ 403 | ❌ 403 |
@@ -206,6 +210,16 @@ Rol operativo de atención directa y cobro en mostrador.
 * **Solución aplicada:**
   * `GET /api/v1/users` y `GET /api/v1/users/:id` ahora están restringidos exclusivamente a `@Roles('OWNER', 'ADMIN', 'ACCOUNTANT')`.
   * Los roles operativos (`CASHIER` y `WAREHOUSE_MANAGER`) reciben `403 Forbidden` y consultan su propia información de perfil y sede a través de `GET /api/v1/auth/me`.
+
+---
+
+### ✅ Problema 6: Obtención de IDs y Listado General de Empresas para OWNER — [RESUELTO]
+* **Diagnóstico anterior:** Cuando un usuario creaba una empresa adicional mediante `POST /api/v1/tenants`, no podía consultar su ID desde `GET /api/v1/tenants/current` porque ese endpoint solo devuelve la empresa asociada al token de sesión JWT activo (`req.user.tenantId`).
+* **Solución aplicada:**
+  * Se crearon los endpoints:
+    * `GET /api/v1/tenants`: Retorna la lista de todas las empresas activas registradas en el sistema con sus respectivos IDs (`tenant.id`), nombres, NIT, etc.
+    * `GET /api/v1/tenants/:id`: Permite consultar el detalle de cualquier empresa específica por su UUID.
+  * Ambos endpoints están protegidos exclusivamente con `@Roles('OWNER')`. Los demás roles reciben `403 Forbidden`.
 
 ---
 

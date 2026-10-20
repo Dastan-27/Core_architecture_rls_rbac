@@ -1,4 +1,4 @@
-﻿{
+{
   "info": {
     "name": "Core Architecture RLS & RBAC",
     "description": "Coleccion completa de la API SaaS Contable — Multi-Tenancy, RLS y RBAC.\n\nCREDENCIALES DEL SEED:\n- Password universal: Password123*\n- Tenant 1 (Tech Solutions SAS):\n  OWNER:             owner@techsolutions.com\n  ADMIN:             admin@techsolutions.com\n  ACCOUNTANT:        accountant@techsolutions.com\n  WAREHOUSE_MANAGER: warehouse@techsolutions.com\n  CASHIER:           cashier@techsolutions.com\n- Tenant 2 (Andina - para validar RLS):\n  OWNER:             owner@andina.com",
@@ -143,6 +143,22 @@
     {
       "name": "Tenants",
       "item": [
+        {
+          "name": "GET /tenants - Listar Todas las Empresas (Solo OWNER)",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/tenants",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        },
+        {
+          "name": "GET /tenants/:id - Obtener Empresa por ID (Solo OWNER)",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/tenants/{{TENANT_ID}}",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        },
         {
           "name": "GET /tenants/current",
           "request": {

@@ -29,6 +29,7 @@ export interface DeactivateTenantResult {
 }
 
 export interface TenantRepositoryPort {
+  findAll(): Promise<Tenant[]>;
   findById(id: string): Promise<Tenant | null>;
   findByNitRut(nitRut: string): Promise<Tenant | null>;
   create(data: CreateTenantData): Promise<Tenant>;

@@ -18,6 +18,13 @@ export class PostgresTenantRepository
     super(dataSource);
   }
 
+  async findAll(): Promise<Tenant[]> {
+    const result = await this.queryFn(
+      'SELECT * FROM tenants WHERE is_active = true ORDER BY created_at ASC',
+    );
+    return result.map((row) => this.mapToEntity(row));
+  }
+
   async findById(id: string): Promise<Tenant | null> {
     const result = await this.queryFn('SELECT * FROM tenants WHERE id = $1', [
       id,

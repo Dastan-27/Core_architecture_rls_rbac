@@ -6,6 +6,7 @@ import { PostgresTenantRepository } from './persistence/postgres-tenant.reposito
 import { RedisTenantCacheAdapter } from './adapters/redis-tenant-cache.adapter.js';
 import { RedisTenantSessionAdapter } from './adapters/redis-tenant-session.adapter.js';
 import {
+  ListTenantsUseCase,
   GetTenantUseCase,
   CreateTenantUseCase,
   UpdateTenantUseCase,
@@ -26,11 +27,12 @@ import { RedisModule } from '../../../shared/infrastructure/redis/redis.module.j
       provide: TENANT_SESSION_INVALIDATOR_PORT,
       useClass: RedisTenantSessionAdapter,
     },
+    ListTenantsUseCase,
     GetTenantUseCase,
     CreateTenantUseCase,
     UpdateTenantUseCase,
     DeactivateTenantUseCase,
   ],
-  exports: [GetTenantUseCase, TENANT_CACHE_PORT],
+  exports: [ListTenantsUseCase, GetTenantUseCase, TENANT_CACHE_PORT],
 })
 export class TenantModule {}

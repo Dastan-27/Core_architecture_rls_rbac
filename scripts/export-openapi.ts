@@ -24,6 +24,7 @@ import { GetProfileUseCase } from '../src/contexts/auth/application/use-cases/ge
 import { LogoutUseCase } from '../src/contexts/auth/application/use-cases/logout.use-case.js';
 
 import {
+  ListTenantsUseCase,
   GetTenantUseCase,
   CreateTenantUseCase,
   UpdateTenantUseCase,
@@ -84,6 +85,7 @@ const dummyProvider = (provide: any) => ({
     dummyProvider(RefreshTokenUseCase),
     dummyProvider(GetProfileUseCase),
     dummyProvider(LogoutUseCase),
+    dummyProvider(ListTenantsUseCase),
     dummyProvider(GetTenantUseCase),
     dummyProvider(CreateTenantUseCase),
     dummyProvider(UpdateTenantUseCase),
