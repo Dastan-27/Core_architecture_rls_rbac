@@ -37,30 +37,33 @@ export class CreateUserDto {
   password: string;
 
   @ApiProperty({
-    description: 'Tipo de documento',
-    enum: ['C.C', 'CE', 'PASAPORTE'],
-    example: 'C.C',
+    description: 'Tipo de documento (CC, CE, PASAPORTE)',
+    enum: ['CC', 'CE', 'PASAPORTE'],
+    example: 'CC',
   })
   @IsString()
-  @IsIn(['C.C', 'CE', 'PASAPORTE'], {
-    message: 'El tipo de documento debe ser C.C, CE o PASAPORTE',
-  })
   @Transform(({ value }: { value: string }) => {
-    const map: Record<string, string> = { 'C.C': 'CC', PASAPORTE: 'PP' };
-    return map[value] ?? value;
+    if (typeof value !== 'string') return value;
+    const clean = value.trim().toUpperCase();
+    if (clean === 'C.C' || clean === 'CC') return 'CC';
+    if (clean === 'PASAPORTE' || clean === 'PP') return 'PASAPORTE';
+    return clean;
+  })
+  @IsIn(['CC', 'CE', 'PASAPORTE'], {
+    message: 'El tipo de documento debe ser CC, CE o PASAPORTE',
   })
   documentType: string;
 
   @ApiProperty({
     description:
-      'Número de documento (numérico max 11 para C.C/CE, alfanumérico max 9 para PASAPORTE)',
+      'Número de documento (numérico max 11 para CC/CE, alfanumérico max 9 para PASAPORTE)',
     example: '1098765432',
   })
   @IsString()
-  @ValidateIf((o) => o.documentType === 'C.C' || o.documentType === 'CE')
+  @ValidateIf((o) => o.documentType === 'CC' || o.documentType === 'CE')
   @Matches(/^[0-9]{1,11}$/, {
     message:
-      'Para C.C y CE, el documento debe ser solo números y máximo 11 caracteres',
+      'Para CC y CE, el documento debe ser solo números y máximo 11 caracteres',
   })
   @ValidateIf((o) => o.documentType === 'PASAPORTE')
   @Matches(/^[a-zA-Z0-9]{1,9}$/, {
@@ -82,7 +85,8 @@ export class CreateUserDto {
   phone: string;
 
   @ApiPropertyOptional({
-    description: 'Nombre de la sucursal (ej: Sede Principal Bogotá)',
+    description:
+      'Nombre de la sucursal (ej: Sede Principal Bogotá). Obligatorio para CASHIER y WAREHOUSE_MANAGER; omitido para OWNER.',
     example: 'Sede Principal Bogotá',
   })
   @IsString()

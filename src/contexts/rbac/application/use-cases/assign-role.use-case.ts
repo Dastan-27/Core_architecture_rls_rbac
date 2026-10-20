@@ -34,14 +34,19 @@ export class AssignRoleUseCase {
     }
 
     const user = await this.userRepository.findById(command.userId);
-    if (!user) {
+    if (!user || user.tenantId !== command.tenantId) {
       throw new UserNotFoundException(command.userId);
     }
 
     if (command.assignedByRole === 'ADMIN') {
-      if (user.role === 'OWNER' || command.newRole === 'OWNER') {
+      if (
+        user.role === 'OWNER' ||
+        user.role === 'ADMIN' ||
+        command.newRole === 'OWNER' ||
+        command.newRole === 'ADMIN'
+      ) {
         throw new InsufficientPermissionsException(
-          'ADMIN no puede modificar o asignar rol OWNER',
+          'ADMIN solo puede asignar roles ACCOUNTANT, WAREHOUSE_MANAGER o CASHIER',
         );
       }
     }

@@ -81,7 +81,8 @@ export class UsersController {
   ) {
     let branchId: string | null = null;
 
-    if (dto.branchName) {
+    // OWNER es transversal a toda la empresa; no se le asocia sucursal
+    if (dto.role !== 'OWNER' && dto.branchName) {
       const branch = await this.getBranch.execute(
         req.user.tenantId,
         dto.branchName,
@@ -102,6 +103,7 @@ export class UsersController {
       fullName,
       phone: dto.phone,
       role: dto.role as Role,
+      requesterRole: req.user.role as Role,
     });
   }
 
@@ -114,7 +116,7 @@ export class UsersController {
   @ApiQuery({ name: 'role', required: false, type: String })
   @ApiQuery({ name: 'is_active', required: false, type: String })
   @Get()
-  @Roles('OWNER', 'ADMIN', 'ACCOUNTANT', 'WAREHOUSE_MANAGER', 'CASHIER')
+  @Roles('OWNER', 'ADMIN', 'ACCOUNTANT')
   async findAll(
     @Request() req: AuthenticatedRequest,
     @Query('branch_id') branchId?: string,
@@ -131,7 +133,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Obtener usuario por ID' })
   @ApiParam({ name: 'id', description: 'UUID del usuario' })
   @Get(':id')
-  @Roles('OWNER', 'ADMIN', 'ACCOUNTANT', 'WAREHOUSE_MANAGER', 'CASHIER')
+  @Roles('OWNER', 'ADMIN', 'ACCOUNTANT')
   async findOne(@Param('id') id: string, @Request() req: AuthenticatedRequest) {
     return this.getUser.execute(id, req.user.tenantId);
   }
@@ -205,11 +207,12 @@ export class UsersController {
 
   @ApiOperation({
     summary: 'Cambiar rol de usuario',
-    description: 'Exclusivo para rol OWNER.',
+    description:
+      'OWNER puede asignar cualquier rol. ADMIN solo puede asignar roles operativos (ACCOUNTANT, WAREHOUSE_MANAGER, CASHIER).',
   })
   @ApiParam({ name: 'id', description: 'UUID del usuario' })
   @Patch(':id/role')
-  @Roles('OWNER')
+  @Roles('OWNER', 'ADMIN')
   @HttpCode(HttpStatus.OK)
   async changeRole(
     @Param('id') id: string,

@@ -13,6 +13,7 @@ import {
   EmailAlreadyRegisteredException,
   PasswordRequiredException,
   DocumentAlreadyRegisteredException,
+  BranchRequiredForRoleException,
 } from '../../domain/exceptions/user.exceptions.js';
 
 import { USER_SESSION_INVALIDATOR_PORT } from '../../domain/ports/user-session-invalidator.port.js';
@@ -31,6 +32,7 @@ export interface CreateUserCommand {
   readonly fullName: string;
   readonly phone: string | null;
   readonly role: Role;
+  readonly requesterRole?: Role;
 }
 
 export interface UpdateUserProfileCommand {
@@ -66,6 +68,26 @@ export class CreateUserUseCase {
   ) {}
 
   async execute(command: CreateUserCommand): Promise<User> {
+    if (command.requesterRole === 'ADMIN') {
+      if (command.role === 'OWNER' || command.role === 'ADMIN') {
+        throw new InsufficientPermissionsException(
+          'ADMIN solo puede crear usuarios con roles ACCOUNTANT, WAREHOUSE_MANAGER o CASHIER',
+        );
+      }
+    }
+
+    let effectiveBranchId = command.branchId;
+    if (command.role === 'OWNER') {
+      effectiveBranchId = null;
+    } else if (
+      command.role === 'CASHIER' ||
+      command.role === 'WAREHOUSE_MANAGER'
+    ) {
+      if (!effectiveBranchId) {
+        throw new BranchRequiredForRoleException(command.role);
+      }
+    }
+
     const existing = await this.userRepository.findByEmail(command.email);
     if (existing) {
       throw new EmailAlreadyRegisteredException(command.email);
@@ -84,7 +106,7 @@ export class CreateUserUseCase {
     const user = User.create({
       id: uuidv4(),
       tenantId: command.tenantId,
-      branchId: command.branchId,
+      branchId: effectiveBranchId,
       documentType: command.documentType,
       documentNumber: command.documentNumber,
       email: command.email,
@@ -137,11 +159,14 @@ export class UpdateUserProfileUseCase {
   ) {}
 
   async execute(command: UpdateUserProfileCommand): Promise<UserWithBranch> {
+    const user = await this.userRepository.findById(command.id);
+    if (!user || user.tenantId !== command.tenantId) {
+      throw new UserNotFoundException(command.id);
+    }
     if (command.requesterRole === 'ADMIN') {
-      const user = await this.userRepository.findById(command.id);
-      if (user?.role === 'OWNER') {
+      if (user.role === 'OWNER' || user.role === 'ADMIN') {
         throw new InsufficientPermissionsException(
-          'ADMIN no puede modificar al OWNER',
+          'ADMIN no puede modificar el perfil de otro ADMIN ni del OWNER',
         );
       }
     }
@@ -171,12 +196,15 @@ export class UpdateUserStatusUseCase {
 
   async execute(command: UpdateUserStatusCommand): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
-    if (!user) {
+    if (!user || user.tenantId !== command.tenantId) {
       throw new UserNotFoundException(command.userId);
     }
-    if (command.requesterRole === 'ADMIN' && user.role === 'OWNER') {
+    if (
+      command.requesterRole === 'ADMIN' &&
+      (user.role === 'OWNER' || user.role === 'ADMIN')
+    ) {
       throw new InsufficientPermissionsException(
-        'ADMIN no puede modificar al OWNER',
+        'ADMIN no puede modificar a otro ADMIN ni al OWNER',
       );
     }
 
@@ -202,13 +230,17 @@ export class ResetPasswordUseCase {
     if (!command.newPasswordHash) {
       throw new PasswordRequiredException();
     }
-    if (command.requesterRole === 'ADMIN') {
-      const user = await this.userRepository.findById(command.id);
-      if (user?.role === 'OWNER') {
-        throw new InsufficientPermissionsException(
-          'ADMIN no puede modificar al OWNER',
-        );
-      }
+    const user = await this.userRepository.findById(command.id);
+    if (!user || user.tenantId !== command.tenantId) {
+      throw new UserNotFoundException(command.id);
+    }
+    if (
+      command.requesterRole === 'ADMIN' &&
+      (user.role === 'OWNER' || user.role === 'ADMIN')
+    ) {
+      throw new InsufficientPermissionsException(
+        'ADMIN no puede resetear la contraseña de otro ADMIN ni del OWNER',
+      );
     }
     await this.userRepository.resetPassword(
       command.id,
@@ -234,12 +266,12 @@ export class DeleteUserUseCase {
     requesterRole?: Role,
   ): Promise<void> {
     const user = await this.userRepository.findById(id);
-    if (!user) {
+    if (!user || user.tenantId !== tenantId) {
       throw new UserNotFoundException(id);
     }
-    if (requesterRole === 'ADMIN' && user.role === 'OWNER') {
+    if (requesterRole === 'ADMIN' && (user.role === 'OWNER' || user.role === 'ADMIN')) {
       throw new InsufficientPermissionsException(
-        'ADMIN no puede eliminar al OWNER',
+        'ADMIN no puede eliminar a otro ADMIN ni al OWNER',
       );
     }
 

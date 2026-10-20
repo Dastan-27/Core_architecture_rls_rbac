@@ -542,7 +542,7 @@
     },
     "/api/v1/users/{id}/role": {
       "patch": {
-        "description": "Exclusivo para rol OWNER.",
+        "description": "OWNER puede asignar cualquier rol. ADMIN solo puede asignar roles operativos (ACCOUNTANT, WAREHOUSE_MANAGER, CASHIER).",
         "operationId": "UsersController_changeRole",
         "parameters": [
           {

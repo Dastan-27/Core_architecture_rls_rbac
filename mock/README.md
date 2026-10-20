@@ -82,6 +82,12 @@ Archivos listos para probar la API de **Core Architecture RLS & RBAC** sin escri
 
 ---
 
+## Documentación detallada de Roles y Permisos
+
+Para consultar la matriz completa de endpoints por rol, las responsabilidades de cada rol y el análisis de problemas de seguridad y RBAC, consulta [ROLES.md](../ROLES.md).
+
+---
+
 ## Credenciales del Seed
 
 **Contrasena universal:** `Password123*`
