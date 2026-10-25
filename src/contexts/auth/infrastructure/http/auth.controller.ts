@@ -12,11 +12,18 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { RateLimitGuard } from '../../../../shared/infrastructure/http/guards/rate-limit.guard.js';
 import { RateLimit } from '../../../../shared/infrastructure/http/decorators/rate-limit.decorator.js';
-import { LoginDto, RefreshDto } from '../../application/dtos/auth.dtos.js';
+import {
+  LoginDto,
+  RefreshDto,
+  ForgotPasswordDto,
+  ResetPasswordWithTokenDto,
+} from '../../application/dtos/auth.dtos.js';
 import { LoginUseCase } from '../../application/use-cases/login.use-case.js';
 import { RefreshTokenUseCase } from '../../application/use-cases/refresh-token.use-case.js';
 import { GetProfileUseCase } from '../../application/use-cases/get-profile.use-case.js';
 import { LogoutUseCase } from '../../application/use-cases/logout.use-case.js';
+import { ForgotPasswordUseCase } from '../../application/use-cases/forgot-password.use-case.js';
+import { ResetPasswordWithTokenUseCase } from '../../application/use-cases/reset-password-with-token.use-case.js';
 import type { AuthenticatedRequest } from '../../../../shared/infrastructure/http/interfaces/authenticated-request.interface.js';
 
 @ApiTags('Auth - Autenticación y Sesiones')
@@ -27,6 +34,8 @@ export class AuthController {
     private readonly refreshToken: RefreshTokenUseCase,
     private readonly getProfile: GetProfileUseCase,
     private readonly logoutUseCase: LogoutUseCase,
+    private readonly forgotPassword: ForgotPasswordUseCase,
+    private readonly resetPasswordWithToken: ResetPasswordWithTokenUseCase,
   ) {}
 
   @ApiOperation({
@@ -54,6 +63,37 @@ export class AuthController {
   async refresh(@Body() dto: RefreshDto) {
     return this.refreshToken.execute({
       refreshToken: dto.refreshToken,
+    });
+  }
+
+  @ApiOperation({
+    summary: 'Solicitar recuperación de contraseña (Self-Service)',
+    description:
+      'Envía un enlace/token temporal de recuperación al correo del usuario. Protegido contra ataques de enumeración y fuerza bruta (Rate Limit: 3 req/min).',
+  })
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ limit: 3, ttlSeconds: 60, trackByBodyField: 'email' })
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async requestForgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.forgotPassword.execute({
+      email: dto.email,
+    });
+  }
+
+  @ApiOperation({
+    summary: 'Restablecer contraseña con token (Self-Service)',
+    description:
+      'Valida el token de recuperación temporal de un solo uso y actualiza la contraseña del usuario, revocando todas sus sesiones activas.',
+  })
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ limit: 5, ttlSeconds: 60 })
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async executeResetPassword(@Body() dto: ResetPasswordWithTokenDto) {
+    return this.resetPasswordWithToken.execute({
+      token: dto.token,
+      newPassword: dto.newPassword,
     });
   }
 

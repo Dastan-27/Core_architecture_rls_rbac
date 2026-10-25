@@ -188,10 +188,23 @@ export class PostgresUserRepository
     tenantId: string,
     newHash: string,
   ): Promise<void> {
-    await this.queryFn(
-      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE tenant_id = $2 AND id = $3',
-      [newHash, tenantId, id],
-    );
+    const qr = RlsContext.getQueryRunner();
+    if (qr) {
+      await qr.query("SET LOCAL app.bypass_rls = 'on'");
+      await qr.query(
+        'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE tenant_id = $2 AND id = $3',
+        [newHash, tenantId, id],
+      );
+      return;
+    }
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.query("SET LOCAL app.bypass_rls = 'on'");
+      await manager.query(
+        'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE tenant_id = $2 AND id = $3',
+        [newHash, tenantId, id],
+      );
+    });
   }
 
   async softDelete(id: string, tenantId: string): Promise<boolean> {

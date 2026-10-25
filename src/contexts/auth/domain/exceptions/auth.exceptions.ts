@@ -13,8 +13,8 @@ export class SessionExpiredException extends DomainException {
 }
 
 export class InvalidTokenException extends DomainException {
-  constructor() {
-    super('Token inválido o expirado', 'INVALID_TOKEN', 401);
+  constructor(message = 'Token inválido o expirado') {
+    super(message, 'INVALID_TOKEN', 401);
   }
 }
 
