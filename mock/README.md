@@ -132,6 +132,8 @@ Para consultar la matriz completa de endpoints por rol, las responsabilidades de
 |---|---|---|
 | POST | /api/v1/auth/login | (publico) |
 | POST | /api/v1/auth/refresh | (publico) |
+| POST | /api/v1/auth/forgot-password | (publico) |
+| POST | /api/v1/auth/reset-password | (publico) |
 | POST | /api/v1/auth/logout | Autenticado |
 | GET | /api/v1/auth/me | Autenticado |
 | GET | /api/v1/tenants/current | Todos |

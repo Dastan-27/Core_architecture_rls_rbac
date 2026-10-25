@@ -22,6 +22,8 @@ import { LoginUseCase } from '../src/contexts/auth/application/use-cases/login.u
 import { RefreshTokenUseCase } from '../src/contexts/auth/application/use-cases/refresh-token.use-case.js';
 import { GetProfileUseCase } from '../src/contexts/auth/application/use-cases/get-profile.use-case.js';
 import { LogoutUseCase } from '../src/contexts/auth/application/use-cases/logout.use-case.js';
+import { ForgotPasswordUseCase } from '../src/contexts/auth/application/use-cases/forgot-password.use-case.js';
+import { ResetPasswordWithTokenUseCase } from '../src/contexts/auth/application/use-cases/reset-password-with-token.use-case.js';
 
 import {
   ListTenantsUseCase,
@@ -85,6 +87,8 @@ const dummyProvider = (provide: any) => ({
     dummyProvider(RefreshTokenUseCase),
     dummyProvider(GetProfileUseCase),
     dummyProvider(LogoutUseCase),
+    dummyProvider(ForgotPasswordUseCase),
+    dummyProvider(ResetPasswordWithTokenUseCase),
     dummyProvider(ListTenantsUseCase),
     dummyProvider(GetTenantUseCase),
     dummyProvider(CreateTenantUseCase),

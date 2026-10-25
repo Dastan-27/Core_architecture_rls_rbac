@@ -103,6 +103,38 @@
         ]
       }
     },
+    "/api/v1/auth/forgot-password": {
+      "post": {
+        "description": "Envía un enlace/token temporal de recuperación al correo del usuario. Protegido contra ataques de enumeración y fuerza bruta (Rate Limit: 3 req/min).",
+        "operationId": "AuthController_requestForgotPassword",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Solicitar recuperación de contraseña (Self-Service)",
+        "tags": [
+          "Auth - Autenticación y Sesiones"
+        ]
+      }
+    },
+    "/api/v1/auth/reset-password": {
+      "post": {
+        "description": "Valida el token de recuperación temporal de un solo uso y actualiza la contraseña del usuario, revocando todas sus sesiones activas.",
+        "operationId": "AuthController_executeResetPassword",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Restablecer contraseña con token (Self-Service)",
+        "tags": [
+          "Auth - Autenticación y Sesiones"
+        ]
+      }
+    },
     "/api/v1/auth/logout": {
       "post": {
         "description": "Invalida la sesión actual en Redis revocando el token activo.",

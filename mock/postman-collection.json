@@ -131,6 +131,30 @@
           }
         },
         {
+          "name": "POST /auth/forgot-password - Solicitar Recuperacion",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/auth/forgot-password",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@techsolutions.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /auth/reset-password - Restablecer con Token",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/v1/auth/reset-password",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"PEGA_EL_TOKEN_AQUI\",\n  \"newPassword\": \"NewPassword123*\"\n}"
+            }
+          }
+        },
+        {
           "name": "POST /auth/logout - Cerrar Sesion",
           "request": {
             "method": "POST",

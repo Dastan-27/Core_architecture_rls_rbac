@@ -129,6 +129,8 @@ Rol operativo de atención directa y cobro en mostrador.
 |---|---|---|:---:|:---:|:---:|:---:|:---:|
 | **Auth** | `POST` | `/api/v1/auth/login` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Auth** | `POST` | `/api/v1/auth/refresh` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Auth** | `POST` | `/api/v1/auth/forgot-password` | ✅ *(público)* | ✅ *(público)* | ✅ *(público)* | ✅ *(público)* | ✅ *(público)* |
+| **Auth** | `POST` | `/api/v1/auth/reset-password` | ✅ *(público)* | ✅ *(público)* | ✅ *(público)* | ✅ *(público)* | ✅ *(público)* |
 | **Auth** | `POST` | `/api/v1/auth/logout` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Auth** | `GET` | `/api/v1/auth/me` | ✅ *(con IDs)* | ✅ *(con IDs)* | ✅ *(básico)* | ✅ *(básico)* | ✅ *(básico)* |
 | **Tenants** | `GET` | `/api/v1/tenants` | ✅ *(listar todas)* | ❌ 403 | ❌ 403 | ❌ 403 | ❌ 403 |
@@ -242,6 +244,23 @@ Rol operativo de atención directa y cobro en mostrador.
       4. Actualiza `tenant_id` en la tabla `users` mediante `PostgresUserRepository.updateProfile`.
       5. Normaliza y sanitiza automáticamente `branchId: "NULL"` o `"null"` para prevenir errores de tipo en PostgreSQL.
     * Si otro rol intenta modificar el `tenantId`, recibe `403 Forbidden`.
+
+---
+
+### ✅ Problema 8: Recuperación de Contraseña Self-Service (Olvido de Contraseña) — [RESUELTO]
+* **Diagnóstico anterior:** El sistema solo contaba con reseteo administrativo mediante `POST /api/v1/users/:id/reset-password` (restringido a `OWNER` y `ADMIN`). No existía un flujo de autoservicio para que cualquier usuario pudiera restablecer su contraseña si la olvidaba.
+* **Solución aplicada:**
+  * **Solicitud de reseteo (`POST /api/v1/auth/forgot-password`):**
+    * Endpoint público protegido con `RateLimitGuard` (máximo 3 peticiones por minuto por correo para evitar abusos y spam).
+    * **Anti-enumeración:** Si el usuario no existe o está inactivo, retorna el mismo mensaje genérico exitoso HTTP 200 para evitar fugas de información sobre correos registrados.
+    * Si el usuario existe y está activo:
+      * Genera un token aleatorio criptográfico único con expiración automática de 15 minutos (900s) almacenado en Redis (`pwd_reset:<token>`).
+      * Notifica al usuario vía `EmailServicePort` (implementado por `ConsoleEmailAdapter` en consola/logs para pruebas locales y simulador de correo).
+  * **Restablecimiento con token (`POST /api/v1/auth/reset-password`):**
+    * Endpoint público protegido con `RateLimitGuard` (máximo 5 peticiones por minuto).
+    * Valida y consume el token atómicamente desde Redis (elimina la clave para prevenir ataques de repetición / replay attacks).
+    * Hashea la nueva contraseña con `bcrypt` (10 salt rounds) y actualiza la tabla `users` en PostgreSQL mediante `PostgresUserRepository.resetPassword` con bypass controlado de RLS para soportar la ejecución no autenticada.
+    * Invalida todas las sesiones JWT y refresh tokens activos del usuario en Redis (`sessionCache.invalidateUserSessions`), garantizando que cualquier sesión previa quede revocada de inmediato.
 
 ---
 
