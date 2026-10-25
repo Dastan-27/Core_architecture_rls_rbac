@@ -16,7 +16,8 @@
     "start:prod": "node dist/main",
     "lint": "oxlint --type-aware src/",
     "seed": "tsx src/shared/infrastructure/persistence/seeds/seed.ts",
-    "export:openapi": "tsx scripts/export-openapi.ts"
+    "export:openapi": "tsx scripts/export-openapi.ts",
+    "test:recovery": "tsx scripts/test-password-recovery-flow.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
