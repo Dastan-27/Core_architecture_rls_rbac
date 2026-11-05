@@ -67,16 +67,16 @@ flowchart TD
 | **2.3** | **Sucursales** | Desacoplamiento en `src/contexts/user/infrastructure/user.module.ts` | ✅ | Eliminada la inyección de `BranchModule`. |
 | **2.4** | **Sucursales** | Limpieza de `users.controller.ts` y `user.dtos.ts` | ✅ | Removido `GetBranchUseCase`, campo `branchName` y asignación física de sedes. |
 | **2.5** | **Sucursales** | Ajuste en `user.use-cases.ts` y excepciones | ✅ | Eliminadas validaciones obligatorias de sucursal para cajeros/bodegueros. |
-| **2.6** | **Sucursales** | Limpieza en `postgres-user.repository.ts` | ⏳ | Retirar `LEFT JOIN branches` y columnas `b.name AS branch_name` en consultas nativas. |
-| **2.7** | **Sucursales** | Actualización de script de inicialización (`seed.ts`) | ⏳ | Eliminar inserción y políticas RLS asociadas a la tabla `branches`. |
-| **3.1** | **Proveedores** | Entidad de Dominio (`supplier.entity.ts`) | ⏳ | Extensión de `BaseTenantEntity` para heredar `tenantId` y control de fechas. |
-| **3.2** | **Proveedores** | Puerto del Repositorio (`supplier-repository.port.ts`) | ⏳ | Métodos de consulta, creación, actualización, soft-delete y paginación tipada. |
-| **3.3** | **Proveedores** | Excepciones de Dominio (`supplier.exceptions.ts`) | ⏳ | `SupplierNotFoundException`, `SupplierAlreadyExistsException`, `SupplierFilterTooShortException`. |
-| **3.4** | **Proveedores** | Casos de Uso (`supplier.use-cases.ts`) | ⏳ | Lógica de negocio: validación de filtro por nombre (mínimo 3 caracteres), unicidad de NIT/RUT por empresa. |
-| **3.5** | **Proveedores** | DTOs HTTP (`supplier.dtos.ts`) | ⏳ | Validaciones con `class-validator`, transformaciones numéricas y decoradores Swagger. |
-| **3.6** | **Proveedores** | Controlador REST (`suppliers.controller.ts`) | ⏳ | Endpoints `/api/v1/suppliers` blindados con `@UseGuards(JwtAuthGuard, RolesGuard)`. |
-| **3.7** | **Proveedores** | Repositorio PostgreSQL (`postgres-supplier.repository.ts`) | ⏳ | Consultas nativas con `this.queryFn`, búsqueda `ILIKE` en razón social y nombre comercial, integración con RLS. |
-| **3.8** | **Proveedores** | Registro de Módulo (`supplier.module.ts` & `app.module.ts`) | ⏳ | Enlace de puertos con adaptadores y exportación limpia para inyección de dependencias. |
+| **2.6** | **Sucursales** | Limpieza en `postgres-user.repository.ts` | ✅ | Retirado `LEFT JOIN branches`, `branch_id` y `branch_name` de todas las consultas nativas. |
+| **2.7** | **Sucursales** | Actualización de script de inicialización (`seed.ts`) | ✅ | Eliminada inserción de branches, políticas RLS de branches y `branch_id` de usuarios. |
+| **3.1** | **Proveedores** | Entidad de Dominio (`supplier.entity.ts`) | ✅ | Extensión de `BaseTenantEntity` para heredar `tenantId`, fechas y métodos de dominio. |
+| **3.2** | **Proveedores** | Puerto del Repositorio (`supplier-repository.port.ts`) | ✅ | Métodos CRUD, soft-delete, paginación tipada y símbolo de inyección. |
+| **3.3** | **Proveedores** | Excepciones de Dominio (`supplier.exceptions.ts`) | ✅ | `SupplierNotFoundException`, `SupplierAlreadyExistsException`, `SupplierFilterTooShortException`. |
+| **3.4** | **Proveedores** | Casos de Uso (`supplier.use-cases.ts`) | ✅ | Lógica de negocio: validación de filtro ≥ 3 chars, unicidad NIT/RUT por tenant, paginación. |
+| **3.5** | **Proveedores** | DTOs HTTP (`supplier.dtos.ts`) | ✅ | Validaciones con `class-validator`, transformaciones, `@Type` y Swagger. |
+| **3.6** | **Proveedores** | Controlador REST (`suppliers.controller.ts`) | ✅ | Endpoints `/api/v1/suppliers` blindados con `@UseGuards(JwtAuthGuard, RolesGuard)` y RBAC. |
+| **3.7** | **Proveedores** | Repositorio PostgreSQL (`postgres-supplier.repository.ts`) | ✅ | Consultas nativas con `this.queryFn`, búsqueda `ILIKE`, paginación y RLS. |
+| **3.8** | **Proveedores** | Registro de Módulo (`supplier.module.ts` & `app.module.ts`) | ✅ | Enlace de puertos con adaptadores y exportación limpia para inyección de dependencias. |
 | **4.1** | **Docker** | Definición de `Dockerfile` multi-stage | ⏳ | Etapas de dependencias, compilación TypeScript (`dist`) y runtime optimizado con Alpine. |
 | **4.2** | **Docker** | Creación de `.dockerignore` | ⏳ | Ignorar `node_modules`, `dist`, `.env`, scripts locales y logs. |
 | **4.3** | **Docker** | Orquestación en `docker-compose.yml` | ⏳ | Adición del servicio `api` interconectado a `postgres` y `redis` bajo la red `core_network`. |
