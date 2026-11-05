@@ -10,6 +10,7 @@ import { RbacModule } from './contexts/rbac/infrastructure/rbac.module.js';
 import { TenantModule } from './contexts/tenant/infrastructure/tenant.module.js';
 import { UserModule } from './contexts/user/infrastructure/user.module.js';
 import { AuditModule } from './contexts/audit/infrastructure/audit.module.js';
+import { SupplierModule } from './contexts/supplier/infrastructure/supplier.module.js';
 
 import { HealthModule } from './shared/infrastructure/http/health/health.module.js';
 
@@ -25,6 +26,7 @@ import { HealthModule } from './shared/infrastructure/http/health/health.module.
     TenantModule,
     UserModule,
     AuditModule,
+    SupplierModule,
   ],
 })
 export class AppModule implements NestModule {
