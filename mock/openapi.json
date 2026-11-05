@@ -301,27 +301,10 @@
         ]
       }
     },
-    "/api/v1/branches": {
-      "get": {
-        "operationId": "BranchesController_getAll",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Listar sucursales",
-        "tags": [
-          "Branches - Sucursales"
-        ]
-      },
+    "/api/v1/suppliers": {
       "post": {
-        "operationId": "BranchesController_create",
+        "description": "Registra un nuevo proveedor en la empresa del usuario autenticado. El NIT/RUT debe ser único por empresa.",
+        "operationId": "SuppliersController_create",
         "parameters": [],
         "responses": {
           "201": {
@@ -333,21 +316,40 @@
             "bearer": []
           }
         ],
-        "summary": "Crear sucursal",
+        "summary": "Crear proveedor",
         "tags": [
-          "Branches - Sucursales"
+          "Suppliers - Gestión de Proveedores"
+        ]
+      },
+      "get": {
+        "description": "Obtiene proveedores del tenant con búsqueda por nombre/razón social (mínimo 3 caracteres) y paginación.",
+        "operationId": "SuppliersController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar proveedores",
+        "tags": [
+          "Suppliers - Gestión de Proveedores"
         ]
       }
     },
-    "/api/v1/branches/{identifier}": {
+    "/api/v1/suppliers/{id}": {
       "get": {
-        "operationId": "BranchesController_getOne",
+        "operationId": "SuppliersController_findOne",
         "parameters": [
           {
-            "name": "identifier",
+            "name": "id",
             "required": true,
             "in": "path",
-            "description": "UUID o nombre de la sucursal",
+            "description": "UUID del proveedor",
             "schema": {}
           }
         ],
@@ -361,19 +363,20 @@
             "bearer": []
           }
         ],
-        "summary": "Obtener sucursal por ID o Nombre",
+        "summary": "Obtener proveedor por ID",
         "tags": [
-          "Branches - Sucursales"
+          "Suppliers - Gestión de Proveedores"
         ]
       },
       "patch": {
-        "operationId": "BranchesController_update",
+        "description": "Actualiza los datos de un proveedor existente.",
+        "operationId": "SuppliersController_update",
         "parameters": [
           {
-            "name": "identifier",
+            "name": "id",
             "required": true,
             "in": "path",
-            "description": "UUID o nombre de la sucursal",
+            "description": "UUID del proveedor",
             "schema": {}
           }
         ],
@@ -387,19 +390,20 @@
             "bearer": []
           }
         ],
-        "summary": "Actualizar sucursal",
+        "summary": "Actualizar proveedor",
         "tags": [
-          "Branches - Sucursales"
+          "Suppliers - Gestión de Proveedores"
         ]
       },
       "delete": {
-        "operationId": "BranchesController_delete",
+        "description": "Desactiva un proveedor sin eliminarlo físicamente.",
+        "operationId": "SuppliersController_remove",
         "parameters": [
           {
-            "name": "identifier",
+            "name": "id",
             "required": true,
             "in": "path",
-            "description": "UUID o nombre de la sucursal",
+            "description": "UUID del proveedor a desactivar",
             "schema": {}
           }
         ],
@@ -413,9 +417,9 @@
             "bearer": []
           }
         ],
-        "summary": "Eliminar sucursal (Soft Delete)",
+        "summary": "Eliminar proveedor (Soft Delete)",
         "tags": [
-          "Branches - Sucursales"
+          "Suppliers - Gestión de Proveedores"
         ]
       }
     },
@@ -453,14 +457,6 @@
           },
           {
             "name": "role",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "branch_id",
             "required": false,
             "in": "query",
             "schema": {

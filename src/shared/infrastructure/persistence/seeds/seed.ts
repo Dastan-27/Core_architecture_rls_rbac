@@ -3,7 +3,6 @@ import * as path from 'node:path';
 import pg from 'pg';
 import bcrypt from 'bcrypt';
 
-// ─── Cargar variables de entorno desde .env ──────────────────────────────────
 function loadEnv() {
   const envPath = path.resolve(process.cwd(), '.env');
   if (fs.existsSync(envPath)) {
@@ -46,24 +45,33 @@ async function runSeed() {
 
   try {
     await client.query('BEGIN');
-    // Desactivar temporalmente RLS en esta sesión de seed para garantizar inserción limpia
     await client.query("SET LOCAL app.bypass_rls = 'on'").catch(() => {});
 
-    // Asegurar que las políticas de RLS soporten el estándar del proyecto (app.bypass_rls = 'on')
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS suppliers (
+        id UUID PRIMARY KEY,
+        tenant_id UUID NOT NULL,
+        nit_rut VARCHAR(20) NOT NULL,
+        business_name VARCHAR(150) NOT NULL,
+        trade_name VARCHAR(150),
+        contact_name VARCHAR(100),
+        phone VARCHAR(20),
+        email VARCHAR(150),
+        address VARCHAR(255),
+        is_active BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT uq_suppliers_tenant_nit UNIQUE (tenant_id, nit_rut)
+      );
+      ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
+    `);
+
     console.log(
       '🔒 Verificando y sincronizando políticas RLS con bypass_rls...',
     );
     await client.query(`
       DO $$
       BEGIN
-        IF EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'branches' AND policyname = 'tenant_isolation_branches') THEN
-          DROP POLICY tenant_isolation_branches ON branches;
-          CREATE POLICY tenant_isolation_branches ON branches FOR ALL USING (
-            (tenant_id = (NULLIF(current_setting('app.current_tenant_id', true), ''))::uuid)
-            OR (current_setting('app.bypass_rls', true) = 'on')
-          );
-        END IF;
-
         IF EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'audit_logs' AND policyname = 'tenant_isolation_audit') THEN
           DROP POLICY tenant_isolation_audit ON audit_logs;
           CREATE POLICY tenant_isolation_audit ON audit_logs FOR ALL USING (
@@ -85,17 +93,25 @@ async function runSeed() {
             OR (current_setting('app.current_role', true) = 'OWNER')
           );
         END IF;
+
+        IF EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'suppliers' AND policyname = 'tenant_isolation_suppliers') THEN
+          DROP POLICY tenant_isolation_suppliers ON suppliers;
+        END IF;
+        CREATE POLICY tenant_isolation_suppliers ON suppliers FOR ALL USING (
+          (tenant_id = (NULLIF(current_setting('app.current_tenant_id', true), ''))::uuid)
+          OR (current_setting('app.bypass_rls', true) = 'on')
+        )
+        WITH CHECK (
+          (tenant_id = (NULLIF(current_setting('app.current_tenant_id', true), ''))::uuid)
+          OR (current_setting('app.bypass_rls', true) = 'on')
+        );
       END $$;
     `);
 
-    // Restricción de unicidad para número de documento
     await client.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS uq_users_document_number ON users (document_number);
     `);
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // 1. TENANTS (2 Empresas)
-    // ─────────────────────────────────────────────────────────────────────────
     console.log('\n🏢 1. Sembrando Tenants (2 Empresas)...');
     const tenants = [
       {
@@ -155,64 +171,7 @@ async function runSeed() {
       console.log(`  ✓ Tenant listo: ${t.business_name} (${t.id})`);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // 2. BRANCHES (Sucursales para cada Tenant)
-    // ─────────────────────────────────────────────────────────────────────────
-    console.log('\n🏬 2. Sembrando Sucursales (Branches)...');
-    const branches = [
-      {
-        id: 'b1000000-0000-4000-8000-000000000001',
-        tenant_id: 'a1000000-0000-4000-8000-000000000001',
-        code: 'SUC-001',
-        name: 'Sede Principal Bogotá',
-        address: 'Calle 10 # 20-30 Piso 2',
-        phone: '+573001234567',
-      },
-      {
-        id: 'b1000000-0000-4000-8000-000000000002',
-        tenant_id: 'a1000000-0000-4000-8000-000000000001',
-        code: 'SUC-002',
-        name: 'Sede Norte Bogotá',
-        address: 'Autopista Norte # 128-45',
-        phone: '+573009876543',
-      },
-      {
-        id: 'b2000000-0000-4000-8000-000000000001',
-        tenant_id: 'a2000000-0000-4000-8000-000000000002',
-        code: 'SUC-101',
-        name: 'Sede Central Medellín',
-        address: 'Carrera 43A # 1-50 Local 102',
-        phone: '+573109876543',
-      },
-    ];
-
-    for (const b of branches) {
-      // Configurar el contexto del tenant para cumplir con la política RLS de branches
-      await client.query(
-        "SELECT set_config('app.current_tenant_id', $1, true), set_config('app.bypass_rls', 'on', true)",
-        [b.tenant_id],
-      );
-      await client.query(
-        `INSERT INTO branches (
-          id, tenant_id, code, name, address, phone, is_active
-        ) VALUES ($1, $2, $3, $4, $5, $6, true)
-        ON CONFLICT (id) DO UPDATE SET
-          code = EXCLUDED.code,
-          name = EXCLUDED.name,
-          address = EXCLUDED.address,
-          phone = EXCLUDED.phone,
-          is_active = true`,
-        [b.id, b.tenant_id, b.code, b.name, b.address, b.phone],
-      );
-      console.log(
-        `  ✓ Sucursal lista: ${b.name} (${b.code}) -> Tenant: ${b.tenant_id}`,
-      );
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // 3. USUARIOS (Cada rol RBAC, 2 Owners, 1 Admin, etc.)
-    // ─────────────────────────────────────────────────────────────────────────
-    console.log('\n👥 3. Sembrando Usuarios con Roles RBAC...');
+    console.log('\n👥 2. Sembrando Usuarios con Roles RBAC...');
     const defaultPasswordRaw = 'Password123*';
     const passwordHash = await bcrypt.hash(defaultPasswordRaw, 10);
     console.log(
@@ -220,11 +179,9 @@ async function runSeed() {
     );
 
     const users = [
-      // Tenant 1: Tech Solutions SAS
       {
         id: 'd1000000-0000-4000-8000-000000000001',
         tenant_id: 'a1000000-0000-4000-8000-000000000001',
-        branch_id: 'b1000000-0000-4000-8000-000000000001',
         document_type: 'CC',
         document_number: '1010101001',
         email: 'owner@techsolutions.com',
@@ -235,7 +192,6 @@ async function runSeed() {
       {
         id: 'd1000000-0000-4000-8000-000000000002',
         tenant_id: 'a1000000-0000-4000-8000-000000000001',
-        branch_id: 'b1000000-0000-4000-8000-000000000001',
         document_type: 'CC',
         document_number: '1010101002',
         email: 'admin@techsolutions.com',
@@ -246,7 +202,6 @@ async function runSeed() {
       {
         id: 'd1000000-0000-4000-8000-000000000003',
         tenant_id: 'a1000000-0000-4000-8000-000000000001',
-        branch_id: 'b1000000-0000-4000-8000-000000000001',
         document_type: 'CC',
         document_number: '1010101003',
         email: 'accountant@techsolutions.com',
@@ -257,7 +212,6 @@ async function runSeed() {
       {
         id: 'd1000000-0000-4000-8000-000000000004',
         tenant_id: 'a1000000-0000-4000-8000-000000000001',
-        branch_id: 'b1000000-0000-4000-8000-000000000002',
         document_type: 'CC',
         document_number: '1010101004',
         email: 'warehouse@techsolutions.com',
@@ -268,7 +222,6 @@ async function runSeed() {
       {
         id: 'd1000000-0000-4000-8000-000000000005',
         tenant_id: 'a1000000-0000-4000-8000-000000000001',
-        branch_id: 'b1000000-0000-4000-8000-000000000001',
         document_type: 'CC',
         document_number: '1010101005',
         email: 'cashier@techsolutions.com',
@@ -276,12 +229,9 @@ async function runSeed() {
         phone: '+573001110005',
         role: 'CASHIER',
       },
-
-      // Tenant 2: Comercializadora Andina SAS (Segundo Owner para probar RLS)
       {
         id: 'd2000000-0000-4000-8000-000000000001',
         tenant_id: 'a2000000-0000-4000-8000-000000000002',
-        branch_id: 'b2000000-0000-4000-8000-000000000001',
         document_type: 'CC',
         document_number: '2020202001',
         email: 'owner@andina.com',
@@ -298,10 +248,9 @@ async function runSeed() {
       );
       await client.query(
         `INSERT INTO users (
-          id, tenant_id, branch_id, document_type, document_number, email, password_hash, full_name, phone, role, is_active
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true)
+          id, tenant_id, document_type, document_number, email, password_hash, full_name, phone, role, is_active
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)
         ON CONFLICT (tenant_id, email) DO UPDATE SET
-          branch_id = EXCLUDED.branch_id,
           document_type = EXCLUDED.document_type,
           document_number = EXCLUDED.document_number,
           password_hash = EXCLUDED.password_hash,
@@ -312,7 +261,6 @@ async function runSeed() {
         [
           u.id,
           u.tenant_id,
-          u.branch_id,
           u.document_type,
           u.document_number,
           u.email,
@@ -325,9 +273,65 @@ async function runSeed() {
       console.log(`  ✓ Usuario listo: [${u.role}] ${u.email} (${u.full_name})`);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // 4. AUDIT LOGS (Registros iniciales de auditoría)
-    // ─────────────────────────────────────────────────────────────────────────
+    console.log('\n📦 3. Sembrando Proveedores Iniciales...');
+    const suppliers = [
+      {
+        id: 'e1000000-0000-4000-8000-000000000001',
+        tenant_id: 'a1000000-0000-4000-8000-000000000001',
+        nit_rut: '900555111-1',
+        business_name: 'Mayorista de Tecnología SAS',
+        trade_name: 'TechMayorista',
+        contact_name: 'Santiago Proveedor',
+        phone: '+573005551111',
+        email: 'ventas@techmayorista.com',
+        address: 'Avenida 68 # 45-20 Bogotá',
+      },
+      {
+        id: 'e2000000-0000-4000-8000-000000000001',
+        tenant_id: 'a2000000-0000-4000-8000-000000000002',
+        nit_rut: '900777222-2',
+        business_name: 'Distribuidora Andina de Suministros SAS',
+        trade_name: 'AndinaSupplies',
+        contact_name: 'Mariana Proveedora',
+        phone: '+573107772222',
+        email: 'ventas@andinasupplies.com',
+        address: 'Calle 10 Sur # 50-30 Medellín',
+      },
+    ];
+
+    for (const s of suppliers) {
+      await client.query(
+        "SELECT set_config('app.current_tenant_id', $1, true), set_config('app.bypass_rls', 'on', true)",
+        [s.tenant_id],
+      );
+      await client.query(
+        `INSERT INTO suppliers (
+          id, tenant_id, nit_rut, business_name, trade_name, contact_name, phone, email, address, is_active
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)
+        ON CONFLICT (id) DO UPDATE SET
+          nit_rut = EXCLUDED.nit_rut,
+          business_name = EXCLUDED.business_name,
+          trade_name = EXCLUDED.trade_name,
+          contact_name = EXCLUDED.contact_name,
+          phone = EXCLUDED.phone,
+          email = EXCLUDED.email,
+          address = EXCLUDED.address,
+          is_active = true`,
+        [
+          s.id,
+          s.tenant_id,
+          s.nit_rut,
+          s.business_name,
+          s.trade_name,
+          s.contact_name,
+          s.phone,
+          s.email,
+          s.address,
+        ],
+      );
+      console.log(`  ✓ Proveedor listo: ${s.business_name} (${s.nit_rut}) -> Tenant: ${s.tenant_id}`);
+    }
+
     console.log('\n📜 4. Sembrando Registros Iniciales de Auditoría...');
     const owner1Res = await client.query(
       "SELECT id FROM users WHERE email = 'owner@techsolutions.com' LIMIT 1",

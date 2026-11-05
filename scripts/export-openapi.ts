@@ -6,7 +6,7 @@ import * as path from 'path';
 
 import { AuthController } from '../src/contexts/auth/infrastructure/http/auth.controller.js';
 import { TenantsController } from '../src/contexts/tenant/infrastructure/http/tenants.controller.js';
-import { BranchesController } from '../src/contexts/branch/infrastructure/http/branches.controller.js';
+import { SuppliersController } from '../src/contexts/supplier/infrastructure/http/suppliers.controller.js';
 import { UsersController } from '../src/contexts/user/infrastructure/http/users.controller.js';
 import { HealthController } from '../src/shared/infrastructure/http/health/health.controller.js';
 
@@ -34,12 +34,12 @@ import {
 } from '../src/contexts/tenant/application/use-cases/tenant.use-cases.js';
 
 import {
-  ListBranchesUseCase,
-  GetBranchUseCase,
-  CreateBranchUseCase,
-  UpdateBranchUseCase,
-  DeleteBranchUseCase,
-} from '../src/contexts/branch/application/use-cases/branch.use-cases.js';
+  CreateSupplierUseCase,
+  GetSupplierByIdUseCase,
+  GetSuppliersUseCase,
+  UpdateSupplierUseCase,
+  DeleteSupplierUseCase,
+} from '../src/contexts/supplier/application/use-cases/supplier.use-cases.js';
 
 import {
   CreateUserUseCase,
@@ -70,7 +70,7 @@ const dummyProvider = (provide: any) => ({
     HealthController,
     AuthController,
     TenantsController,
-    BranchesController,
+    SuppliersController,
     UsersController,
   ],
   providers: [
@@ -94,11 +94,11 @@ const dummyProvider = (provide: any) => ({
     dummyProvider(CreateTenantUseCase),
     dummyProvider(UpdateTenantUseCase),
     dummyProvider(DeactivateTenantUseCase),
-    dummyProvider(ListBranchesUseCase),
-    dummyProvider(GetBranchUseCase),
-    dummyProvider(CreateBranchUseCase),
-    dummyProvider(UpdateBranchUseCase),
-    dummyProvider(DeleteBranchUseCase),
+    dummyProvider(CreateSupplierUseCase),
+    dummyProvider(GetSupplierByIdUseCase),
+    dummyProvider(GetSuppliersUseCase),
+    dummyProvider(UpdateSupplierUseCase),
+    dummyProvider(DeleteSupplierUseCase),
     dummyProvider(CreateUserUseCase),
     dummyProvider(ListUsersUseCase),
     dummyProvider(GetUserUseCase),
