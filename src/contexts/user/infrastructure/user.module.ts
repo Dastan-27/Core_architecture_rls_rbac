@@ -15,12 +15,11 @@ import {
 import { UsersController } from './http/users.controller.js';
 import { AuthModule } from '../../auth/infrastructure/auth.module.js';
 import { RbacModule } from '../../rbac/infrastructure/rbac.module.js';
-import { BranchModule } from '../../branch/infrastructure/branch.module.js';
 import { AuditModule } from '../../audit/infrastructure/audit.module.js';
 import { TenantModule } from '../../tenant/infrastructure/tenant.module.js';
 
 @Module({
-  imports: [AuthModule, RbacModule, BranchModule, AuditModule, TenantModule],
+  imports: [AuthModule, RbacModule, AuditModule, TenantModule],
 
   controllers: [UsersController],
   providers: [

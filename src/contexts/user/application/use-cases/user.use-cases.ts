@@ -13,7 +13,6 @@ import {
   EmailAlreadyRegisteredException,
   PasswordRequiredException,
   DocumentAlreadyRegisteredException,
-  BranchRequiredForRoleException,
 } from '../../domain/exceptions/user.exceptions.js';
 
 import { USER_SESSION_INVALIDATOR_PORT } from '../../domain/ports/user-session-invalidator.port.js';
@@ -81,13 +80,6 @@ export class CreateUserUseCase {
     let effectiveBranchId = command.branchId;
     if (command.role === 'OWNER') {
       effectiveBranchId = null;
-    } else if (
-      command.role === 'CASHIER' ||
-      command.role === 'WAREHOUSE_MANAGER'
-    ) {
-      if (!effectiveBranchId) {
-        throw new BranchRequiredForRoleException(command.role);
-      }
     }
 
     const existing = await this.userRepository.findByEmail(command.email);
@@ -186,7 +178,6 @@ export class UpdateUserProfileUseCase {
     }
 
     let targetTenantId = user.tenantId;
-    let branchId = command.branchId;
 
     if (command.newTenantId && command.newTenantId !== user.tenantId) {
       if (command.requesterRole !== 'OWNER') {
@@ -195,20 +186,10 @@ export class UpdateUserProfileUseCase {
         );
       }
 
-      // Validar que la nueva empresa exista en el sistema
       await this.getTenant.execute(command.newTenantId);
       targetTenantId = command.newTenantId;
 
-      // Al cambiar de empresa, la sucursal de la empresa anterior ya no aplica
-      branchId = user.role === 'OWNER' ? null : (command.branchId ?? null);
-
-      // Invalidar tokens activos de la sesión anterior en Redis
       await this.sessionCache.invalidateUserSessions(user.id);
-    }
-
-    // Los usuarios OWNER nunca tienen sucursal física asociada
-    if (user.role === 'OWNER') {
-      branchId = null;
     }
 
     const updated = await this.userRepository.updateProfile(
@@ -216,7 +197,6 @@ export class UpdateUserProfileUseCase {
       user.tenantId,
       command.fullName,
       command.phone,
-      branchId,
       targetTenantId,
     );
     if (!updated) {

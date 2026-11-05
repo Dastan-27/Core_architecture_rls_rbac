@@ -85,15 +85,6 @@ export class CreateUserDto {
   })
   phone: string;
 
-  @ApiPropertyOptional({
-    description:
-      'Nombre de la sucursal (ej: Sede Principal Bogotá). Obligatorio para CASHIER y WAREHOUSE_MANAGER; omitido para OWNER.',
-    example: 'Sede Principal Bogotá',
-  })
-  @IsString()
-  @IsOptional()
-  branchName?: string;
-
   @ApiProperty({ description: 'Rol del usuario', example: 'CASHIER' })
   @IsString()
   @IsIn(['OWNER', 'ADMIN', 'ACCOUNTANT', 'WAREHOUSE_MANAGER', 'CASHIER'])
@@ -122,14 +113,6 @@ export class UpdateUserProfileDto {
   @IsString()
   @IsOptional()
   phone?: string;
-
-  @ApiPropertyOptional({
-    description: 'UUID de la sucursal',
-    example: 'b1000000-0000-4000-8000-000000000001',
-  })
-  @IsString()
-  @IsOptional()
-  branchId?: string;
 
   @ApiPropertyOptional({
     description:

@@ -32,13 +32,4 @@ export class DocumentAlreadyRegisteredException extends DomainException {
   }
 }
 
-export class BranchRequiredForRoleException extends DomainException {
-  constructor(role: string) {
-    super(
-      `La sucursal es obligatoria para el rol '${role}'`,
-      'BRANCH_REQUIRED_FOR_ROLE',
-      400,
-    );
-  }
-}
 

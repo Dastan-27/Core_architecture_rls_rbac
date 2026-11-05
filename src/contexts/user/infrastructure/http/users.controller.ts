@@ -42,7 +42,6 @@ import {
   ResetPasswordUseCase,
   DeleteUserUseCase,
 } from '../../application/use-cases/user.use-cases.js';
-import { GetBranchUseCase } from '../../../branch/application/use-cases/branch.use-cases.js';
 import { GetTenantUseCase } from '../../../tenant/application/use-cases/tenant.use-cases.js';
 import { InsufficientPermissionsException } from '../../../rbac/domain/exceptions/insufficient-permissions.exception.js';
 import { GetUserAuditTrailUseCase } from '../../../audit/application/use-cases/get-user-audit-trail.use-case.js';
@@ -65,7 +64,6 @@ export class UsersController {
     private readonly updateStatus: UpdateUserStatusUseCase,
     private readonly resetPassword: ResetPasswordUseCase,
     private readonly deleteUser: DeleteUserUseCase,
-    private readonly getBranch: GetBranchUseCase,
     private readonly assignRole: AssignRoleUseCase,
     private readonly getUserAuditTrail: GetUserAuditTrailUseCase,
     private readonly getTenant: GetTenantUseCase,
@@ -102,23 +100,12 @@ export class UsersController {
       await this.getTenant.execute(targetTenantId);
     }
 
-    let branchId: string | null = null;
-
-    // OWNER es transversal a toda la empresa; no se le asocia sucursal
-    if (dto.role !== 'OWNER' && dto.branchName) {
-      const branch = await this.getBranch.execute(
-        targetTenantId,
-        dto.branchName,
-      );
-      branchId = branch.id;
-    }
-
     const fullName = `${dto.firstName} ${dto.lastName}`.trim();
     const passwordHash = await this.passwordHasher.hash(dto.password);
 
     return this.createUser.execute({
       tenantId: targetTenantId,
-      branchId,
+      branchId: null,
       documentType: dto.documentType,
       documentNumber: dto.documentNumber,
       email: dto.email,
@@ -135,19 +122,16 @@ export class UsersController {
     description:
       'Obtiene todos los usuarios del tenant con filtros opcionales.',
   })
-  @ApiQuery({ name: 'branch_id', required: false, type: String })
   @ApiQuery({ name: 'role', required: false, type: String })
   @ApiQuery({ name: 'is_active', required: false, type: String })
   @Get()
   @Roles('OWNER', 'ADMIN', 'ACCOUNTANT')
   async findAll(
     @Request() req: AuthenticatedRequest,
-    @Query('branch_id') branchId?: string,
     @Query('role') role?: string,
     @Query('is_active') isActive?: string,
   ) {
     return this.listUsers.execute(req.user.tenantId, {
-      branchId,
       role,
       isActive: isActive !== undefined ? isActive === 'true' : undefined,
     });
@@ -180,22 +164,13 @@ export class UsersController {
       );
     }
 
-    let targetBranchId: string | null | undefined = dto.branchId;
-    if (
-      targetBranchId === 'NULL' ||
-      targetBranchId === 'null' ||
-      targetBranchId === ''
-    ) {
-      targetBranchId = null;
-    }
-
     return this.updateProfile.execute({
       id,
       tenantId: req.user.tenantId,
       newTenantId: req.user.role === 'OWNER' ? dto.tenantId : undefined,
       fullName: dto.fullName,
       phone: dto.phone,
-      branchId: targetBranchId,
+      branchId: null,
       requesterRole: req.user.role as Role,
     });
   }

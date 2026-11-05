@@ -8,7 +8,6 @@ import { CorrelationIdMiddleware } from './shared/infrastructure/http/middleware
 import { AuthModule } from './contexts/auth/infrastructure/auth.module.js';
 import { RbacModule } from './contexts/rbac/infrastructure/rbac.module.js';
 import { TenantModule } from './contexts/tenant/infrastructure/tenant.module.js';
-import { BranchModule } from './contexts/branch/infrastructure/branch.module.js';
 import { UserModule } from './contexts/user/infrastructure/user.module.js';
 import { AuditModule } from './contexts/audit/infrastructure/audit.module.js';
 
@@ -24,7 +23,6 @@ import { HealthModule } from './shared/infrastructure/http/health/health.module.
     AuthModule,
     RbacModule,
     TenantModule,
-    BranchModule,
     UserModule,
     AuditModule,
   ],

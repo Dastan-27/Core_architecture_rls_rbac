@@ -1,7 +1,6 @@
 import type { User } from '../models/user.entity.js';
 
 export interface UserFilters {
-  branchId?: string;
   role?: string;
   isActive?: boolean;
 }
@@ -16,7 +15,6 @@ export interface UserWithBranch {
   role: string;
   is_active: boolean;
   branch_id: string | null;
-  branch_name: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -35,7 +33,6 @@ export interface UserRepositoryPort {
     tenantId: string,
     fullName?: string,
     phone?: string | null,
-    branchId?: string | null,
     newTenantId?: string,
   ): Promise<UserWithBranch | null>;
   resetPassword(id: string, tenantId: string, newHash: string): Promise<void>;
