@@ -42,6 +42,37 @@ services:
     networks:
       - core_network
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: core_rls_rbac_api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3001}:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_DATABASE: ${DB_DATABASE:-core_rls_rbac}
+      DB_SSL: "false"
+      DB_SYNCHRONIZE: "true"
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-VICfgGgjuLh2N5QlBOMINVtNGu9BR0od}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-8h}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-7d}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - core_network
+
 volumes:
   postgres_data:
     driver: local
