@@ -5,7 +5,7 @@ export interface UserFilters {
   isActive?: boolean;
 }
 
-export interface UserWithBranch {
+export interface UserRow {
   id: string;
   full_name: string;
   email: string;
@@ -14,7 +14,6 @@ export interface UserWithBranch {
   document_number: string;
   role: string;
   is_active: boolean;
-  branch_id: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -23,18 +22,18 @@ export interface UserRepositoryPort {
   findByEmail(email: string): Promise<User | null>;
   findByDocumentNumber(documentNumber: string): Promise<User | null>;
   findById(id: string): Promise<User | null>;
-  findAll(tenantId: string, filters: UserFilters): Promise<UserWithBranch[]>;
-  findOneWithBranch(
+  findAll(tenantId: string, filters: UserFilters): Promise<UserRow[]>;
+  findOne(
     id: string,
     tenantId: string,
-  ): Promise<UserWithBranch | null>;
+  ): Promise<UserRow | null>;
   updateProfile(
     id: string,
     tenantId: string,
     fullName?: string,
     phone?: string | null,
     newTenantId?: string,
-  ): Promise<UserWithBranch | null>;
+  ): Promise<UserRow | null>;
   resetPassword(id: string, tenantId: string, newHash: string): Promise<void>;
   softDelete(id: string, tenantId: string): Promise<boolean>;
   save(user: User): Promise<User>;

@@ -50,7 +50,6 @@ export class RefreshTokenUseCase {
       throw new InvalidCredentialsException();
     }
 
-    // Invalidate old session
     await this.sessionCache.invalidateSession(payload.sub, payload.jti);
 
     const newJti = uuidv4();
@@ -59,7 +58,6 @@ export class RefreshTokenUseCase {
       userId: user.id,
       jti: newJti,
       tenantId: user.tenantId,
-      branchId: user.branchId,
       role: user.role,
     };
 
@@ -74,7 +72,6 @@ export class RefreshTokenUseCase {
       user: {
         id: user.id,
         tenantId: user.tenantId,
-        branchId: user.branchId,
         role: user.role,
       },
     };

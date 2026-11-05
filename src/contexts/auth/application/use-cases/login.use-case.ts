@@ -16,7 +16,7 @@ export interface LoginCommand {
   readonly passwordRaw: string;
 }
 
-const SESSION_TTL = 28800; // 8 hours in seconds
+const SESSION_TTL = 28800;
 
 @Injectable()
 export class LoginUseCase {
@@ -51,7 +51,6 @@ export class LoginUseCase {
       userId: user.id,
       jti,
       tenantId: user.tenantId,
-      branchId: user.branchId,
       role: user.role,
     };
 
@@ -66,7 +65,6 @@ export class LoginUseCase {
       user: {
         id: user.id,
         tenantId: user.tenantId,
-        branchId: user.branchId,
         role: user.role,
       },
     };

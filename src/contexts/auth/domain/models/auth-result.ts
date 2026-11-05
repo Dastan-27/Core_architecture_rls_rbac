@@ -4,7 +4,6 @@ export interface AuthResult {
   readonly user: {
     readonly id: string;
     readonly tenantId: string;
-    readonly branchId: string | null;
     readonly role: string;
   };
 }

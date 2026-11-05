@@ -2,12 +2,9 @@ import type { Role } from '../../../rbac/domain/models/role.enum.js';
 import { DomainException } from '../../../../shared/domain/domain.exception.js';
 import { BaseTenantEntity } from '../../../../shared/domain/base.entity.js';
 
-// ─── Props interface (elimina constructor monstruo) ──────────────────────────
-
 export interface UserProps {
   readonly id: string;
   readonly tenantId: string;
-  readonly branchId: string | null;
   readonly documentType: string;
   readonly documentNumber: string;
   readonly email: string;
@@ -20,10 +17,7 @@ export interface UserProps {
   readonly updatedAt?: Date;
 }
 
-// ─── Entity ──────────────────────────────────────────────────────────────────
-
 export class User extends BaseTenantEntity {
-  branchId: string | null;
   documentType: string;
   documentNumber: string;
   email: string;
@@ -40,7 +34,6 @@ export class User extends BaseTenantEntity {
       props.createdAt ?? new Date(),
       props.updatedAt ?? new Date(),
     );
-    this.branchId = props.branchId;
     this.documentType = props.documentType;
     this.documentNumber = props.documentNumber;
     this.email = props.email;
@@ -55,22 +48,17 @@ export class User extends BaseTenantEntity {
     return new User(props);
   }
 
-  // ─── Comportamientos de dominio ─────────────────────────────────────────────
-
   updateProfile(
     fullName: string,
     phone: string | null,
-    branchId: string | null,
   ): void {
     this.fullName = fullName;
     this.phone = phone;
-    this.branchId = branchId;
     this.updatedAt = new Date();
   }
 
-  transferToTenant(newTenantId: string, newBranchId: string | null = null): void {
+  transferToTenant(newTenantId: string): void {
     this.tenantId = newTenantId;
-    this.branchId = this.role === 'OWNER' ? null : newBranchId;
     this.updatedAt = new Date();
   }
 

@@ -110,7 +110,6 @@ async function runTests() {
   const activeUser = User.create({
     id: 'u-1',
     tenantId: 't-1',
-    branchId: null,
     documentType: 'CC',
     documentNumber: '12345678',
     email: 'carlos@empresa.com',
@@ -124,7 +123,6 @@ async function runTests() {
   const inactiveUser = User.create({
     id: 'u-2',
     tenantId: 't-1',
-    branchId: null,
     documentType: 'CC',
     documentNumber: '87654321',
     email: 'inactivo@empresa.com',
@@ -138,7 +136,6 @@ async function runTests() {
   const adminUser = User.create({
     id: 'u-admin',
     tenantId: 't-1',
-    branchId: null,
     documentType: 'CC',
     documentNumber: '11112222',
     email: 'admin@empresa.com',
@@ -152,7 +149,6 @@ async function runTests() {
   const ownerUser = User.create({
     id: 'u-owner',
     tenantId: 't-1',
-    branchId: null,
     documentType: 'CC',
     documentNumber: '99998888',
     email: 'owner@empresa.com',

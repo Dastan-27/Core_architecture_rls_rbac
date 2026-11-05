@@ -4,7 +4,7 @@ import { USER_REPOSITORY_PORT } from '../../domain/ports/user-repository.port.js
 import type {
   UserRepositoryPort,
   UserFilters,
-  UserWithBranch,
+  UserRow,
 } from '../../domain/ports/user-repository.port.js';
 import { User } from '../../domain/models/user.entity.js';
 import type { Role } from '../../../rbac/domain/models/role.enum.js';
@@ -20,11 +20,8 @@ import type { UserSessionInvalidatorPort } from '../../domain/ports/user-session
 import { InsufficientPermissionsException } from '../../../rbac/domain/exceptions/insufficient-permissions.exception.js';
 import { GetTenantUseCase } from '../../../tenant/application/use-cases/tenant.use-cases.js';
 
-// ─── Commands ───────────────────────────────────────────────────────────────
-
 export interface CreateUserCommand {
   readonly tenantId: string;
-  readonly branchId: string | null;
   readonly documentType: string;
   readonly documentNumber: string;
   readonly email: string;
@@ -41,7 +38,6 @@ export interface UpdateUserProfileCommand {
   readonly newTenantId?: string;
   readonly fullName?: string;
   readonly phone?: string | null;
-  readonly branchId?: string | null;
   readonly requesterRole?: Role;
 }
 
@@ -59,8 +55,6 @@ export interface ResetPasswordCommand {
   readonly requesterRole?: Role;
 }
 
-// ─── Use Cases ──────────────────────────────────────────────────────────────
-
 @Injectable()
 export class CreateUserUseCase {
   constructor(
@@ -75,11 +69,6 @@ export class CreateUserUseCase {
           'ADMIN solo puede crear usuarios con roles ACCOUNTANT, WAREHOUSE_MANAGER o CASHIER',
         );
       }
-    }
-
-    let effectiveBranchId = command.branchId;
-    if (command.role === 'OWNER') {
-      effectiveBranchId = null;
     }
 
     const existing = await this.userRepository.findByEmail(command.email);
@@ -100,7 +89,6 @@ export class CreateUserUseCase {
     const user = User.create({
       id: uuidv4(),
       tenantId: command.tenantId,
-      branchId: effectiveBranchId,
       documentType: command.documentType,
       documentNumber: command.documentNumber,
       email: command.email,
@@ -124,7 +112,7 @@ export class ListUsersUseCase {
   async execute(
     tenantId: string,
     filters: UserFilters,
-  ): Promise<UserWithBranch[]> {
+  ): Promise<UserRow[]> {
     return this.userRepository.findAll(tenantId, filters);
   }
 }
@@ -136,8 +124,8 @@ export class GetUserUseCase {
     private readonly userRepository: UserRepositoryPort,
   ) {}
 
-  async execute(id: string, tenantId: string): Promise<UserWithBranch> {
-    const user = await this.userRepository.findOneWithBranch(id, tenantId);
+  async execute(id: string, tenantId: string): Promise<UserRow> {
+    const user = await this.userRepository.findOne(id, tenantId);
     if (!user) {
       throw new UserNotFoundException(id);
     }
@@ -155,13 +143,12 @@ export class UpdateUserProfileUseCase {
     private readonly getTenant: GetTenantUseCase,
   ) {}
 
-  async execute(command: UpdateUserProfileCommand): Promise<UserWithBranch> {
+  async execute(command: UpdateUserProfileCommand): Promise<UserRow> {
     const user = await this.userRepository.findById(command.id);
     if (!user) {
       throw new UserNotFoundException(command.id);
     }
 
-    // Un usuario de otro tenant solo puede ser modificado por el rol OWNER
     if (
       command.requesterRole !== 'OWNER' &&
       user.tenantId !== command.tenantId

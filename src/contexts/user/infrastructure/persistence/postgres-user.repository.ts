@@ -4,7 +4,7 @@ import { BasePostgresRepository } from '../../../../shared/infrastructure/persis
 import type {
   UserRepositoryPort,
   UserFilters,
-  UserWithBranch,
+  UserRow,
 } from '../../domain/ports/user-repository.port.js';
 import { User } from '../../domain/models/user.entity.js';
 import type { Role } from '../../../rbac/domain/models/role.enum.js';
@@ -81,24 +81,17 @@ export class PostgresUserRepository
   async findAll(
     tenantId: string,
     filters: UserFilters,
-  ): Promise<UserWithBranch[]> {
+  ): Promise<UserRow[]> {
     let sql = `
       SELECT
         u.id, u.full_name, u.email, u.phone,
         u.document_type, u.document_number, u.role,
-        u.is_active, u.branch_id,
-        b.name AS branch_name,
-        u.created_at, u.updated_at
+        u.is_active, u.created_at, u.updated_at
       FROM users u
-      LEFT JOIN branches b ON u.branch_id = b.id AND u.tenant_id = b.tenant_id
       WHERE u.tenant_id = $1
     `;
     const params: unknown[] = [tenantId];
 
-    if (filters.branchId) {
-      params.push(filters.branchId);
-      sql += ` AND u.branch_id = $${params.length}`;
-    }
     if (filters.role) {
       params.push(filters.role);
       sql += ` AND u.role = $${params.length}`;
@@ -113,22 +106,23 @@ export class PostgresUserRepository
     return this.queryFn(sql, params);
   }
 
-  async findOneWithBranch(
+  async findOne(
     id: string,
     tenantId: string,
-  ): Promise<UserWithBranch | null> {
+  ): Promise<UserRow | null> {
     const qr = RlsContext.getQueryRunner();
     if (qr) {
       await qr.query("SET LOCAL app.bypass_rls = 'on'");
     }
     const result = await this.queryFn(
-      `SELECT u.*, b.name AS branch_name
+      `SELECT u.id, u.full_name, u.email, u.phone,
+              u.document_type, u.document_number, u.role,
+              u.is_active, u.created_at, u.updated_at
        FROM users u
-       LEFT JOIN branches b ON u.branch_id = b.id AND u.tenant_id = b.tenant_id
        WHERE u.tenant_id = $1 AND u.id = $2`,
       [tenantId, id],
     );
-    return result.length > 0 ? (result[0] as UserWithBranch) : null;
+    return result.length > 0 ? (result[0] as UserRow) : null;
   }
 
   async updateProfile(
@@ -136,12 +130,9 @@ export class PostgresUserRepository
     tenantId: string,
     fullName?: string,
     phone?: string | null,
-    branchId?: string | null,
     newTenantId?: string,
-  ): Promise<UserWithBranch | null> {
+  ): Promise<UserRow | null> {
     const targetTenant = newTenantId ?? tenantId;
-    const targetBranch =
-      newTenantId !== undefined ? (branchId ?? null) : branchId;
 
     const qr = RlsContext.getQueryRunner();
     if (qr) {
@@ -152,15 +143,14 @@ export class PostgresUserRepository
         `UPDATE users SET
            full_name  = COALESCE($1, full_name),
            phone      = COALESCE($2, phone),
-           branch_id  = ${newTenantId !== undefined ? '$3' : 'COALESCE($3, branch_id)'},
-           tenant_id  = $4,
+           tenant_id  = $3,
            updated_at = CURRENT_TIMESTAMP
-         WHERE id = $5
+         WHERE id = $4
          RETURNING *`,
-        [fullName, phone, targetBranch, targetTenant, id],
+        [fullName, phone, targetTenant, id],
       );
       if (result.length === 0) return null;
-      return this.findOneWithBranch(id, targetTenant);
+      return this.findOne(id, targetTenant);
     }
 
     return await this.dataSource.transaction(async (manager) => {
@@ -171,15 +161,14 @@ export class PostgresUserRepository
         `UPDATE users SET
            full_name  = COALESCE($1, full_name),
            phone      = COALESCE($2, phone),
-           branch_id  = ${newTenantId !== undefined ? '$3' : 'COALESCE($3, branch_id)'},
-           tenant_id  = $4,
+           tenant_id  = $3,
            updated_at = CURRENT_TIMESTAMP
-         WHERE id = $5
+         WHERE id = $4
          RETURNING *`,
-        [fullName, phone, targetBranch, targetTenant, id],
+        [fullName, phone, targetTenant, id],
       );
       if (result.length === 0) return null;
-      return this.findOneWithBranch(id, targetTenant);
+      return this.findOne(id, targetTenant);
     });
   }
 
@@ -222,11 +211,10 @@ export class PostgresUserRepository
     }
     await this.queryFn(
       `INSERT INTO users (
-        id, tenant_id, branch_id, document_type, document_number,
+        id, tenant_id, document_type, document_number,
         email, password_hash, full_name, phone, role, is_active, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       ON CONFLICT (id) DO UPDATE SET
-        branch_id = EXCLUDED.branch_id,
         full_name = EXCLUDED.full_name,
         phone = EXCLUDED.phone,
         role = EXCLUDED.role,
@@ -236,7 +224,6 @@ export class PostgresUserRepository
       [
         user.id,
         user.tenantId,
-        user.branchId,
         user.documentType,
         user.documentNumber,
         user.email,
@@ -256,7 +243,6 @@ export class PostgresUserRepository
     return User.create({
       id: row.id as string,
       tenantId: row.tenant_id as string,
-      branchId: (row.branch_id as string) ?? null,
       documentType: row.document_type as string,
       documentNumber: row.document_number as string,
       email: row.email as string,

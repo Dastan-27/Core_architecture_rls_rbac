@@ -5,7 +5,6 @@ export interface JwtPayload {
   readonly sub: string;
   readonly jti: string;
   readonly tenantId: string;
-  readonly branchId: string | null;
   readonly role: string;
 }
 

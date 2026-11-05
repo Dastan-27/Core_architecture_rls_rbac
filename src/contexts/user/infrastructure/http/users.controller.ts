@@ -105,7 +105,6 @@ export class UsersController {
 
     return this.createUser.execute({
       tenantId: targetTenantId,
-      branchId: null,
       documentType: dto.documentType,
       documentNumber: dto.documentNumber,
       email: dto.email,
@@ -170,7 +169,6 @@ export class UsersController {
       newTenantId: req.user.role === 'OWNER' ? dto.tenantId : undefined,
       fullName: dto.fullName,
       phone: dto.phone,
-      branchId: null,
       requesterRole: req.user.role as Role,
     });
   }

@@ -125,7 +125,6 @@ export class AuthController {
       req.user.userId ?? req.user.sub,
       req.user.tenantId,
       req.user.role,
-      req.user.branchId,
     );
   }
 }

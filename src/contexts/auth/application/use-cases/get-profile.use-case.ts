@@ -9,9 +9,7 @@ export interface UserProfile {
   readonly fullName: string;
   readonly role: string;
   readonly tenantName: string | null;
-  readonly branchName: string | null;
   readonly tenantId?: string;
-  readonly branchId?: string | null;
 }
 
 @Injectable()
@@ -27,10 +25,9 @@ export class GetProfileUseCase {
     userId: string,
     tenantId: string,
     role: string,
-    branchId: string | null,
   ): Promise<UserProfile> {
     const [user, tenant] = await Promise.all([
-      this.userRepository.findOneWithBranch(userId, tenantId),
+      this.userRepository.findOne(userId, tenantId),
       this.tenantRepository.findById(tenantId),
     ]);
 
@@ -42,12 +39,10 @@ export class GetProfileUseCase {
       fullName: user.full_name,
       role: user.role,
       tenantName: tenant?.businessName ?? null,
-      branchName: user.branch_name,
     };
 
-    // IDs solo visibles para roles gerenciales
     if (role === 'OWNER' || role === 'ADMIN') {
-      return { ...profile, tenantId, branchId };
+      return { ...profile, tenantId };
     }
 
     return profile;
