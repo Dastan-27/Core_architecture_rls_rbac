@@ -1,106 +1,81 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🏢 squad1_core_architecture_rls_rbac
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> **API SaaS Contable Multi-Tenant — Arquitectura Base (Core)**  
+> **Stack:** NestJS 12 · TypeScript 6 (Strict ESM) · PostgreSQL 16 (RLS) · Redis 7 · Docker  
+> **Módulo:** Core Architecture, Row-Level Security & Role-Based Access Control
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue.svg)](https://www.typescriptlang.org/)
+[![NestJS](https://img.shields.io/badge/NestJS-12.0-red.svg)](https://nestjs.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16_RLS-336791.svg)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-7.0-dc382d.svg)](https://redis.io/)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2F%20Hexagonal-green.svg)](#)
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🎯 Propósito del Repositorio
 
-## Project setup
+Este repositorio es el **núcleo fundacional (Core Architecture)** de un sistema SaaS Contable multi-empresa. Provee los cimientos transversales de seguridad, aislamiento de datos e identidades que consumen los demás módulos del sistema (facturación, inventario, nómina, contabilidad, reportes y frontend).
 
+### Los 3 Pilares Fundamentales:
+1. 🛡️ **Multi-Tenancy con PostgreSQL Row-Level Security (RLS):** Aislamiento estricto de datos a nivel de motor de base de datos (`SET LOCAL app.current_tenant_id`). Imposible filtrar datos de otra empresa.
+2. 👥 **RBAC (Role-Based Access Control):** 5 roles jerárquicos (`OWNER`, `ADMIN`, `ACCOUNTANT`, `WAREHOUSE_MANAGER`, `CASHIER`) con autorización granular por Guards.
+3. 🔑 **Autenticación JWT con Sesiones en Redis:** Login, refresh tokens, revocación instantánea (logout/bloqueo) mediante lista negra en Redis y recuperación segura de contraseña por email.
+
+---
+
+## 📚 Documentación Técnica Completa
+
+Toda la documentación técnica detallada se encuentra centralizada en la carpeta [`Document/`](./Document/README.md):
+
+| Documento | Enlace | Contenido Principal |
+|-----------|--------|---------------------|
+| **Índice General** | [Document/README.md](./Document/README.md) | Visión completa, principios y mapa de la documentación. |
+| **01. Arquitectura** | [01-ARQUITECTURA.md](./Document/01-ARQUITECTURA.md) | Capas Clean Architecture, Inversión de Dependencias y flujo de requests. |
+| **02. Estructura** | [02-ESTRUCTURA-PROYECTO.md](./Document/02-ESTRUCTURA-PROYECTO.md) | Árbol completo del repositorio comentado archivo por archivo. |
+| **03. Seguridad** | [03-SEGURIDAD-RLS-RBAC.md](./Document/03-SEGURIDAD-RLS-RBAC.md) | Explicación a fondo de RLS en Postgres, Guards RBAC y Redis. |
+| **04. Endpoints** | [04-CATALOGO-ENDPOINTS.md](./Document/04-CATALOGO-ENDPOINTS.md) | Catálogo REST completo con métodos, payloads y códigos HTTP. |
+| **05. Datos** | [05-MODELO-DATOS.md](./Document/05-MODELO-DATOS.md) | Diagrama Entidad-Relación, tablas, campos y relaciones. |
+| **06. Instalación** | [06-GUIA-INSTALACION.md](./Document/06-GUIA-INSTALACION.md) | Paso a paso desde clonar hasta correr el backend y Docker. |
+| **07. Seed** | [07-DATOS-PRUEBA-SEED.md](./Document/07-DATOS-PRUEBA-SEED.md) | Credenciales universales, usuarios y empresas de prueba. |
+| **08. Auditoría** | [08-AUDITORIA-TECNICA.md](./Document/08-AUDITORIA-TECNICA.md) | Evaluación para docentes: OWASP API Security, calidad y dictamen. |
+| **09. Contexto IA** | [09-CONTEXTO-PARA-IA.md](./Document/09-CONTEXTO-PARA-IA.md) | **Prompt maestro listo para alimentar ChatGPT, Claude, Cursor o Gemini.** |
+
+---
+
+## ⚡ Inicio Rápido (3 Pasos)
+
+### 1. Clonar y configurar variables de entorno
 ```bash
-$ npm install
+git clone <url-del-repositorio> squad1_core_architecture_rls_rbac
+cd squad1_core_architecture_rls_rbac
+cp .env.example .env
 ```
 
-## Compile and run the project
-
+### 2. Levantar PostgreSQL y Redis con Docker
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-`
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker compose up -d
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 3. Instalar, sembrar datos y arrancar
+```bash
+npm install
+npm run seed        # Inserta empresas, usuarios y roles de prueba
+npm run start:dev   # Servidor listo en http://localhost:3000
+```
 
-## Observability
+---
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+## 🧪 Pruebas Rápidas y Recursos para Otros Squads
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+- **Swagger UI:** [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+- **Colección Postman:** [`mock/postman-collection.json`](./mock/postman-collection.json)
+- **Especificación OpenAPI 3.0:** [`mock/openapi.json`](./mock/openapi.json)
+- **Contraseña universal del Seed:** `Password123*`
+- **Usuario Owner Tenant 1:** `owner@techsolutions.com`
+- **Usuario Admin Tenant 1:** `admin@techsolutions.com`
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+---
 
-This project is already instrumented. Create a free account at [observe.nestjs.com](https://observe.nestjs.com), add an application, and paste the generated app key and secret into the `ObserveModule.forRoot()` call in `src/app.module.ts`.
+## 🤖 ¿Vas a usar una IA para integrar tu módulo?
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Copia y pega directamente el contenido de [**`Document/09-CONTEXTO-PARA-IA.md`**](./Document/09-CONTEXTO-PARA-IA.md) en tu asistente (ChatGPT, Claude, Cursor, Copilot o Gemini). Incluye el prompt maestro y snippets de integración en TypeScript/React listos para usar.
