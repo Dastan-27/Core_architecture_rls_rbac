@@ -140,11 +140,11 @@ Para consultar la matriz completa de endpoints por rol, las responsabilidades de
 | POST | /api/v1/tenants | OWNER |
 | PATCH | /api/v1/tenants/current | OWNER, ADMIN |
 | DELETE | /api/v1/tenants/current | OWNER |
-| GET | /api/v1/branches | Todos |
-| GET | /api/v1/branches/:id | Todos |
-| POST | /api/v1/branches | OWNER, ADMIN |
-| PATCH | /api/v1/branches/:id | OWNER, ADMIN |
-| DELETE | /api/v1/branches/:id | OWNER, ADMIN |
+| GET | /api/v1/suppliers | OWNER, ADMIN, ACCOUNTANT |
+| GET | /api/v1/suppliers/:id | OWNER, ADMIN, ACCOUNTANT |
+| POST | /api/v1/suppliers | OWNER, ADMIN |
+| PATCH | /api/v1/suppliers/:id | OWNER, ADMIN |
+| DELETE | /api/v1/suppliers/:id | OWNER, ADMIN |
 | GET | /api/v1/users | Todos |
 | GET | /api/v1/users/:id | Todos |
 | POST | /api/v1/users | OWNER, ADMIN |

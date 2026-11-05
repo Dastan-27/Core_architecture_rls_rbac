@@ -9,8 +9,8 @@
     { "key": "ACCESS_TOKEN", "value": "PEGA_TU_TOKEN_AQUI" },
     { "key": "REFRESH_TOKEN", "value": "PEGA_TU_REFRESH_TOKEN_AQUI" },
     { "key": "TENANT_1_ID", "value": "a1000000-0000-4000-8000-000000000001" },
-    { "key": "BRANCH_1A_ID", "value": "b1000000-0000-4000-8000-000000000001" },
-    { "key": "BRANCH_1B_ID", "value": "b1000000-0000-4000-8000-000000000002" },
+    { "key": "SUPPLIER_1_ID", "value": "e1000000-0000-4000-8000-000000000001" },
+    { "key": "SUPPLIER_2_ID", "value": "e2000000-0000-4000-8000-000000000001" },
     { "key": "TENANT_2_ID", "value": "a2000000-0000-4000-8000-000000000002" },
     { "key": "USER_OWNER_T1", "value": "d1000000-0000-4000-8000-000000000001" },
     { "key": "USER_ADMIN_T1", "value": "d1000000-0000-4000-8000-000000000002" },
@@ -228,55 +228,74 @@
       ]
     },
     {
-      "name": "Branches",
+      "name": "Suppliers",
       "item": [
         {
-          "name": "GET /branches - Listar",
+          "name": "GET /suppliers - Listar todos",
           "request": {
             "method": "GET",
-            "url": "{{BASE_URL}}/api/v1/branches",
+            "url": "{{BASE_URL}}/api/v1/suppliers",
             "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
           }
         },
         {
-          "name": "GET /branches/:id",
+          "name": "GET /suppliers - Filtrar por nombre (min 3 letras)",
           "request": {
             "method": "GET",
-            "url": "{{BASE_URL}}/api/v1/branches/{{BRANCH_1A_ID}}",
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/suppliers?search=May",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "suppliers"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "May",
+                  "description": "Filtro de búsqueda por razón social o nombre comercial (mínimo 3 caracteres)"
+                }
+              ]
+            },
             "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
           }
         },
         {
-          "name": "POST /branches - Crear",
+          "name": "GET /suppliers/:id - Obtener por ID",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/suppliers/{{SUPPLIER_1_ID}}",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
+          }
+        },
+        {
+          "name": "POST /suppliers - Crear proveedor",
           "request": {
             "method": "POST",
-            "url": "{{BASE_URL}}/api/v1/branches",
+            "url": "{{BASE_URL}}/api/v1/suppliers",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Sede Occidente\",\n  \"address\": \"Av. Boyaca # 64-75\",\n  \"phone\": \"+573001119988\",\n  \"isActive\": true\n}"
+              "raw": "{\n  \"nitRut\": \"901234567-8\",\n  \"businessName\": \"Insumos y Suministros Globales SAS\",\n  \"tradeName\": \"InsumosGlobal\",\n  \"contactName\": \"Carlos Mendoza\",\n  \"phone\": \"+573009988776\",\n  \"email\": \"ventas@insumosglobal.com\",\n  \"address\": \"Avenida El Dorado # 68C-61\"\n}"
             }
           }
         },
         {
-          "name": "PATCH /branches/:id - Actualizar",
+          "name": "PATCH /suppliers/:id - Actualizar proveedor",
           "request": {
             "method": "PATCH",
-            "url": "{{BASE_URL}}/api/v1/branches/{{BRANCH_1A_ID}}",
+            "url": "{{BASE_URL}}/api/v1/suppliers/{{SUPPLIER_1_ID}}",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"address\": \"Calle 10 # 20-30 Piso 3\",\n  \"phone\": \"+573001234568\"\n}"
+              "raw": "{\n  \"contactName\": \"Santiago Proveedor Principal\",\n  \"phone\": \"+573005559999\"\n}"
             }
           }
         },
         {
-          "name": "DELETE /branches/:id - Eliminar (Soft)",
+          "name": "DELETE /suppliers/:id - Eliminar proveedor (Soft Delete)",
           "request": {
             "method": "DELETE",
-            "url": "{{BASE_URL}}/api/v1/branches/{{BRANCH_1B_ID}}",
+            "url": "{{BASE_URL}}/api/v1/suppliers/{{SUPPLIER_1_ID}}",
             "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] }
           }
         }
@@ -321,7 +340,7 @@
             "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{ACCESS_TOKEN}}" }] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Laura\",\n  \"lastName\": \"Gonzalez\",\n  \"documentType\": \"CC\",\n  \"documentNumber\": \"1099887766\",\n  \"email\": \"laura.gonzalez@techsolutions.com\",\n  \"password\": \"Password123*\",\n  \"phone\": \"+573156667788\",\n  \"role\": \"ACCOUNTANT\",\n  \"branchName\": \"Sede Principal Bogota\"\n}"
+              "raw": "{\n  \"firstName\": \"Laura\",\n  \"lastName\": \"Gonzalez\",\n  \"documentType\": \"CC\",\n  \"documentNumber\": \"1099887766\",\n  \"email\": \"laura.gonzalez@techsolutions.com\",\n  \"password\": \"Password123*\",\n  \"phone\": \"3156667788\",\n  \"role\": \"ACCOUNTANT\"\n}"
             }
           }
         },

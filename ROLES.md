@@ -23,13 +23,13 @@ export const ROLES = [
 ```
    ┌────────────────────────────────────────────────────────┐
    │                         OWNER                          │  <- Máxima autoridad (Tenant)
-   │  • Visión transversal a toda la empresa               │  • branch_id = null (Sin sucursal)
-   │  • Control total sobre sucursales, admins y usuarios   │
+   │  • Visión transversal a toda la empresa                │  • Una sola empresa por cliente
+   │  • Control total sobre proveedores, admins y usuarios │
    └───────────────────────────┬────────────────────────────┘
                                │
    ┌───────────────────────────▼────────────────────────────┐
    │                         ADMIN                          │  <- Administrador General
-   │  • Asignado a la empresa (Tenant)                      │  • Gestiona sucursales
+   │  • Asignado a la empresa (Tenant)                      │  • Gestiona proveedores y usuarios
    │  • Crea y gestiona roles operativos subordinados       │  • NO puede crear/alterar al OWNER ni a otros ADMIN
    └───────────────────────────┬────────────────────────────┘
                                │
@@ -37,10 +37,11 @@ export const ROLES = [
           │                    │                    │
    ┌──────▼──────┐      ┌──────▼───────┐     ┌──────▼──────┐
    │ ACCOUNTANT  │      │  WAREHOUSE_  │     │   CASHIER   │  <- Roles Operativos
-   │ (Contador)  │      │   MANAGER    │     │  (Cajero)   │     (Confinados)
-   │ • Lectura   │      │ • Sucursal   │     │ • Sucursal  │
-   │   contable  │      │   obligatoria│     │   obligatoria
-   └─────────────┘      └──────────────┘     └─────────────┘
+   │ (Contador)  │      │   MANAGER    │     │  (Cajero)   │     (Confinados al Tenant)
+   │ • Lectura   │      │ • Operaciones│     │ • Ventas    │
+   │   contable y│      │   de bodega  │     │   y caja    │
+   │   proveedores      └──────────────┘     └─────────────┘
+   └─────────────┘
 ```
 
 ---
@@ -49,14 +50,15 @@ export const ROLES = [
 
 ### 👑 `OWNER` (Propietario / Dueño de la Empresa)
 Es la máxima autoridad dentro del tenant. Representa al titular legal o creador de la empresa.
-* **Ámbito:** Transversal a toda la empresa. **NO está asignado a ninguna sucursal** (`branch_id = null`), pues su rol es supervisar y gobernar todas las sedes.
+* **Ámbito:** Transversal a toda la empresa. Posee el control total y gobierno de la organización.
 * **Gobierno de la Empresa:**
   * Consultar, modificar y desactivar (soft-delete) su empresa actual (`/api/v1/tenants/current`).
   * Listar todas las empresas (`GET /api/v1/tenants`) para obtener los IDs de todas las empresas creadas en el sistema.
   * Consultar cualquier empresa por su identificador UUID (`GET /api/v1/tenants/:id`).
   * Crear nuevas empresas (`POST /api/v1/tenants`).
-* **Gestión de Sucursales:**
-  * Crear, actualizar, consultar y eliminar sucursales (`/api/v1/branches`).
+* **Gestión de Proveedores:**
+  * Crear, actualizar, consultar y eliminar proveedores (`/api/v1/suppliers`).
+  * Búsqueda y filtrado por nombre con mínimo 3 letras (`GET /api/v1/suppliers?search=xxx`).
 * **Gestión Total de Usuarios y Seguridad:**
   * Crear usuarios con cualquier rol (`OWNER`, `ADMIN`, `ACCOUNTANT`, `WAREHOUSE_MANAGER`, `CASHIER`) en su empresa actual o en cualquier empresa del sistema mediante `tenantId`.
   * Transferir y reasignar usuarios (incluyendo otros Owners) a cualquier empresa registrada (`PATCH /api/v1/users/:id` enviando `tenantId`).
@@ -74,8 +76,9 @@ Responsable de la operación y supervisión administrativa diaria dentro de la e
 * **Gestión de la Empresa:**
   * Consultar y actualizar datos de contacto de la empresa (`PATCH /api/v1/tenants/current`).
   * **Restricción:** NO puede desactivar la empresa (`DELETE /api/v1/tenants/current`) ni crear nuevas empresas.
-* **Gestión de Sucursales:**
-  * Crear, modificar, consultar y eliminar sucursales (`/api/v1/branches`).
+* **Gestión de Proveedores:**
+  * Crear, modificar, consultar y eliminar proveedores (`/api/v1/suppliers`).
+  * Búsqueda y filtrado por nombre con mínimo 3 letras (`GET /api/v1/suppliers?search=xxx`).
 * **Gestión de Usuarios Operativos:**
   * Puede crear usuarios **únicamente con roles operativos subordinados** (`ACCOUNTANT`, `WAREHOUSE_MANAGER`, `CASHIER`).
   * Modificar perfiles, cambiar estado (activo/inactivo), resetear contraseñas y eliminar usuarios subordinados.
@@ -94,31 +97,30 @@ Rol orientado a la gestión contable, financiera y tributaria.
   * Iniciar y cerrar sesión (`/api/v1/auth/login`, `/logout`).
   * Ver su propio perfil (`/api/v1/auth/me`).
   * Consultar la información del tenant actual (`GET /api/v1/tenants/current`).
-  * Listar y consultar detalles de sucursales (`GET /api/v1/branches`).
+  * Listar y consultar proveedores (`GET /api/v1/suppliers`), incluyendo búsqueda por nombre (mínimo 3 letras).
   * Consultar el directorio de usuarios (`GET /api/v1/users` y `GET /api/v1/users/:id`) para fines de nómina y conciliación.
-* **Restricción:** NO puede crear, editar ni eliminar sucursales, empresas ni usuarios.
+* **Restricción:** NO puede crear, editar ni eliminar proveedores, empresas ni usuarios.
 
 ---
 
 ### 📦 `WAREHOUSE_MANAGER` (Jefe de Almacén / Bodega)
-Rol operativo responsable del control de existencias físicas y bodega.
-* **Ámbito:** **Requiere obligatoriamente una sucursal asignada** (`branch_id`).
+Rol operativo responsable del control de existencias físicas y bodega dentro de la empresa.
+* **Ámbito:** Confinado a la empresa (Tenant único).
 * **En el Core Actual:**
   * Iniciar y cerrar sesión (`/api/v1/auth/login`, `/logout`).
-  * Consultar su propio perfil (`GET /api/v1/auth/me`), donde ve el nombre de su empresa y de su sucursal asignada.
+  * Consultar su propio perfil (`GET /api/v1/auth/me`).
   * Consultar información general de la empresa (`GET /api/v1/tenants/current`).
-  * Listar sucursales (`GET /api/v1/branches`) para coordinación logística.
 * **Restricción de Seguridad:** **NO tiene acceso al listado general de usuarios** (`GET /api/v1/users` retorna `403 Forbidden`) para proteger los datos personales de la nómina.
 
 ---
 
 ### 💳 `CASHIER` (Cajero / Punto de Venta)
-Rol operativo de atención directa y cobro en mostrador.
-* **Ámbito:** **Requiere obligatoriamente una sucursal asignada** (`branch_id`).
+Rol operativo de atención directa y cobro en mostrador dentro de la empresa.
+* **Ámbito:** Confinado a la empresa (Tenant único).
 * **En el Core Actual:**
   * Iniciar y cerrar sesión (`/api/v1/auth/login`, `/logout`).
-  * Consultar su propio perfil (`GET /api/v1/auth/me`), obteniendo su nombre, rol, nombre de la empresa y nombre de su sucursal.
-  * Consultar la información básica del tenant (`GET /api/v1/tenants/current`) y consultar sucursales (`GET /api/v1/branches`).
+  * Consultar su propio perfil (`GET /api/v1/auth/me`), obteniendo su nombre, rol y nombre de la empresa.
+  * Consultar la información básica del tenant (`GET /api/v1/tenants/current`).
 * **Restricción de Seguridad:** **NO tiene acceso al listado general de usuarios** (`GET /api/v1/users` retorna `403 Forbidden`). Solo ve sus propios datos en `/auth/me`.
 
 ---
@@ -139,11 +141,11 @@ Rol operativo de atención directa y cobro en mostrador.
 | **Tenants** | `POST` | `/api/v1/tenants` | ✅ | ❌ 403 | ❌ 403 | ❌ 403 | ❌ 403 |
 | **Tenants** | `PATCH` | `/api/v1/tenants/current` | ✅ | ✅ | ❌ 403 | ❌ 403 | ❌ 403 |
 | **Tenants** | `DELETE`| `/api/v1/tenants/current` | ✅ | ❌ 403 | ❌ 403 | ❌ 403 | ❌ 403 |
-| **Branches**| `GET` | `/api/v1/branches` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Branches**| `GET` | `/api/v1/branches/:identifier` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Branches**| `POST` | `/api/v1/branches` | ✅ | ✅ | ❌ 403 | ❌ 403 | ❌ 403 |
-| **Branches**| `PATCH`| `/api/v1/branches/:id` | ✅ | ✅ | ❌ 403 | ❌ 403 | ❌ 403 |
-| **Branches**| `DELETE`| `/api/v1/branches/:id` | ✅ | ✅ | ❌ 403 | ❌ 403 | ❌ 403 |
+| **Suppliers**| `GET` | `/api/v1/suppliers` | ✅ | ✅ | ✅ | ❌ 403 | ❌ 403 |
+| **Suppliers**| `GET` | `/api/v1/suppliers/:id` | ✅ | ✅ | ✅ | ❌ 403 | ❌ 403 |
+| **Suppliers**| `POST` | `/api/v1/suppliers` | ✅ | ✅ | ❌ 403 | ❌ 403 | ❌ 403 |
+| **Suppliers**| `PATCH`| `/api/v1/suppliers/:id` | ✅ | ✅ | ❌ 403 | ❌ 403 | ❌ 403 |
+| **Suppliers**| `DELETE`| `/api/v1/suppliers/:id` | ✅ | ✅ | ❌ 403 | ❌ 403 | ❌ 403 |
 | **Users** | `GET` | `/api/v1/users` | ✅ | ✅ | ✅ | ❌ 403 | ❌ 403 |
 | **Users** | `GET` | `/api/v1/users/:id` | ✅ | ✅ | ✅ | ❌ 403 | ❌ 403 |
 | **Users** | `POST` | `/api/v1/users` | ✅ *(todos)* | ✅ *(solo operativos)* | ❌ 403 | ❌ 403 | ❌ 403 |
@@ -199,12 +201,12 @@ Rol operativo de atención directa y cobro en mostrador.
 
 ---
 
-### ✅ Problema 4: Reglas de Sucursal por Rol (Transversal vs Operativo) — [RESUELTO]
-* **Diagnóstico anterior:** El `OWNER` quedaba forzado o confundido con tener una sucursal asignada, mientras que cajeros y bodegueros podían crearse sin sucursal física.
+### ✅ Problema 4: Supresión Total de Sucursales (Empresa Única por Cliente) — [RESUELTO]
+* **Diagnóstico anterior:** Existía el concepto de sucursales (`branches`), agregando complejidad innecesaria y acoplamiento donde los usuarios requerían sedes físicas.
 * **Solución aplicada:**
-  * **Para `OWNER`:** Al crear o editar un `OWNER`, el sistema descarta cualquier sucursal y asigna automáticamente `branch_id = null`. El Owner es transversal a toda la empresa.
-  * **Para `CASHIER` y `WAREHOUSE_MANAGER`:** La sucursal es obligatoria. Si no se envía `branchName`, el sistema arroja la excepción de dominio `BranchRequiredForRoleException`.
-  * **Para `ADMIN` y `ACCOUNTANT`:** La sucursal es opcional.
+  * Se eliminó por completo el módulo de sucursales (`BranchModule`), su tabla, sus casos de uso, DTOs y controladores.
+  * Cada cliente opera exclusivamente con una única empresa (`Tenant`).
+  * Los roles operativos (`CASHIER`, `WAREHOUSE_MANAGER`, `ACCOUNTANT`, `ADMIN`, `OWNER`) pertenecen directamente a su empresa sin vinculación a sedes secundarias.
 
 ---
 
@@ -240,9 +242,7 @@ Rol operativo de atención directa y cobro en mostrador.
     * Si el `OWNER` envía `tenantId`, el sistema:
       1. Valida que el tenant de destino exista en el sistema.
       2. Invalida todas las sesiones activas del usuario en Redis para revocar tokens con el `tenantId` anterior.
-      3. Desasocia la sucursal física previa (`branch_id = null`) para prevenir inconsistencias foráneas con sedes del tenant anterior.
-      4. Actualiza `tenant_id` en la tabla `users` mediante `PostgresUserRepository.updateProfile`.
-      5. Normaliza y sanitiza automáticamente `branchId: "NULL"` o `"null"` para prevenir errores de tipo en PostgreSQL.
+      3. Actualiza `tenant_id` en la tabla `users` mediante `PostgresUserRepository.updateProfile`.
     * Si otro rol intenta modificar el `tenantId`, recibe `403 Forbidden`.
 
 ---

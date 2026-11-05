@@ -29,6 +29,8 @@ export class DatabaseService implements OnApplicationBootstrap {
   async ensureSchemaConstraints(): Promise<void> {
     try {
       await this.dataSource.query(`
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS document_type VARCHAR(20) DEFAULT 'CC';
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS document_number VARCHAR(50);
         CREATE UNIQUE INDEX IF NOT EXISTS uq_users_document_number ON users (document_number);
       `);
       this.logger.log(

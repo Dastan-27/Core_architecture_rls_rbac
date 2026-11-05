@@ -9,8 +9,11 @@ import {
   UpdateSupplierUseCase,
   DeleteSupplierUseCase,
 } from '../application/use-cases/supplier.use-cases.js';
+import { AuthModule } from '../../auth/infrastructure/auth.module.js';
+import { RbacModule } from '../../rbac/infrastructure/rbac.module.js';
 
 @Module({
+  imports: [AuthModule, RbacModule],
   controllers: [SuppliersController],
   providers: [
     {

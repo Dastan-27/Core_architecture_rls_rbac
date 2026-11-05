@@ -48,9 +48,83 @@ async function runSeed() {
     await client.query("SET LOCAL app.bypass_rls = 'on'").catch(() => {});
 
     await client.query(`
-      CREATE TABLE IF NOT EXISTS suppliers (
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.tables WHERE table_name = 'users' AND table_schema = 'public'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'tenant_id' AND table_schema = 'public'
+        ) THEN
+          DROP TABLE public.users CASCADE;
+        END IF;
+
+        IF EXISTS (
+          SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_logs' AND table_schema = 'public'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns WHERE table_name = 'audit_logs' AND column_name = 'tenant_id' AND table_schema = 'public'
+        ) THEN
+          DROP TABLE public.audit_logs CASCADE;
+        END IF;
+
+        IF EXISTS (
+          SELECT 1 FROM information_schema.tables WHERE table_name = 'suppliers' AND table_schema = 'public'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns WHERE table_name = 'suppliers' AND column_name = 'tenant_id' AND table_schema = 'public'
+        ) THEN
+          DROP TABLE public.suppliers CASCADE;
+        END IF;
+      END $$;
+
+      DROP TABLE IF EXISTS public.branches CASCADE;
+
+      CREATE TABLE IF NOT EXISTS tenants (
+        id UUID PRIMARY KEY,
+        nit_rut VARCHAR(50) NOT NULL UNIQUE,
+        business_name VARCHAR(150) NOT NULL,
+        trade_name VARCHAR(150),
+        address VARCHAR(255),
+        phone VARCHAR(50),
+        email VARCHAR(150),
+        country_code VARCHAR(10) DEFAULT 'COL',
+        currency_code VARCHAR(10) DEFAULT 'COP',
+        tax_regime VARCHAR(50),
+        is_active BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS users (
+        id UUID PRIMARY KEY,
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        document_type VARCHAR(20) NOT NULL DEFAULT 'CC',
+        document_number VARCHAR(50),
+        email VARCHAR(150) NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        full_name VARCHAR(150) NOT NULL,
+        phone VARCHAR(50),
+        role VARCHAR(50) NOT NULL,
+        is_active BOOLEAN NOT NULL DEFAULT true,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT uq_users_tenant_email UNIQUE (tenant_id, email)
+      );
+
+      CREATE TABLE IF NOT EXISTS audit_logs (
         id UUID PRIMARY KEY,
         tenant_id UUID NOT NULL,
+        user_id UUID,
+        action VARCHAR(100) NOT NULL,
+        entity_name VARCHAR(100),
+        entity_id UUID,
+        ip_address VARCHAR(50),
+        user_agent TEXT,
+        details JSONB,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS suppliers (
+        id UUID PRIMARY KEY,
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
         nit_rut VARCHAR(20) NOT NULL,
         business_name VARCHAR(150) NOT NULL,
         trade_name VARCHAR(150),
@@ -63,6 +137,9 @@ async function runSeed() {
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT uq_suppliers_tenant_nit UNIQUE (tenant_id, nit_rut)
       );
+
+      ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
       ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
     `);
 
@@ -109,6 +186,8 @@ async function runSeed() {
     `);
 
     await client.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS document_type VARCHAR(20) DEFAULT 'CC';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS document_number VARCHAR(50);
       CREATE UNIQUE INDEX IF NOT EXISTS uq_users_document_number ON users (document_number);
     `);
 
