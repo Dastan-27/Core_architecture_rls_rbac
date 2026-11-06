@@ -13,6 +13,38 @@ import {
   SupplierFilterTooShortException,
 } from '../../domain/exceptions/supplier.exceptions.js';
 
+export interface SupplierResponse {
+  readonly id: string;
+  readonly tenantId: string;
+  readonly nitRut: string;
+  readonly businessName: string;
+  readonly tradeName: string | null;
+  readonly contactName: string | null;
+  readonly phone: string | null;
+  readonly email: string | null;
+  readonly address: string | null;
+  readonly isActive: boolean;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+function mapSupplierRowToResponse(row: SupplierRow): SupplierResponse {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    nitRut: row.nit_rut,
+    businessName: row.business_name,
+    tradeName: row.trade_name,
+    contactName: row.contact_name,
+    phone: row.phone,
+    email: row.email,
+    address: row.address,
+    isActive: row.is_active,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 export interface CreateSupplierCommand {
   readonly tenantId: string;
   readonly nitRut: string;
@@ -96,17 +128,22 @@ export class GetSuppliersUseCase {
     isActive?: boolean,
     page: number = 1,
     limit: number = 20,
-  ): Promise<PaginatedResult<SupplierRow>> {
+  ): Promise<PaginatedResult<SupplierResponse>> {
     if (search && search.length < 3) {
       throw new SupplierFilterTooShortException();
     }
 
-    return this.supplierRepository.findAll(tenantId, {
+    const result = await this.supplierRepository.findAll(tenantId, {
       search,
       isActive,
       page,
       limit,
     });
+
+    return {
+      data: result.data.map(mapSupplierRowToResponse),
+      meta: result.meta,
+    };
   }
 }
 

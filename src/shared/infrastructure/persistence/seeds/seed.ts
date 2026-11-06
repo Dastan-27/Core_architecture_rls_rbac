@@ -151,25 +151,25 @@ async function runSeed() {
       BEGIN
         IF EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'audit_logs' AND policyname = 'tenant_isolation_audit') THEN
           DROP POLICY tenant_isolation_audit ON audit_logs;
-          CREATE POLICY tenant_isolation_audit ON audit_logs FOR ALL USING (
-            (tenant_id = (NULLIF(current_setting('app.current_tenant_id', true), ''))::uuid)
-            OR (current_setting('app.bypass_rls', true) = 'on')
-          );
         END IF;
+        CREATE POLICY tenant_isolation_audit ON audit_logs FOR ALL USING (
+          (tenant_id = (NULLIF(current_setting('app.current_tenant_id', true), ''))::uuid)
+          OR (current_setting('app.bypass_rls', true) = 'on')
+        );
 
         IF EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'users' AND policyname = 'tenant_isolation_users') THEN
           DROP POLICY tenant_isolation_users ON users;
-          CREATE POLICY tenant_isolation_users ON users FOR ALL USING (
-            (tenant_id = (NULLIF(current_setting('app.current_tenant_id', true), ''))::uuid)
-            OR (current_setting('app.bypass_rls', true) = 'on')
-            OR (current_setting('app.current_role', true) = 'OWNER')
-          )
-          WITH CHECK (
-            (tenant_id = (NULLIF(current_setting('app.current_tenant_id', true), ''))::uuid)
-            OR (current_setting('app.bypass_rls', true) = 'on')
-            OR (current_setting('app.current_role', true) = 'OWNER')
-          );
         END IF;
+        CREATE POLICY tenant_isolation_users ON users FOR ALL USING (
+          (tenant_id = (NULLIF(current_setting('app.current_tenant_id', true), ''))::uuid)
+          OR (current_setting('app.bypass_rls', true) = 'on')
+          OR (current_setting('app.current_role', true) = 'OWNER')
+        )
+        WITH CHECK (
+          (tenant_id = (NULLIF(current_setting('app.current_tenant_id', true), ''))::uuid)
+          OR (current_setting('app.bypass_rls', true) = 'on')
+          OR (current_setting('app.current_role', true) = 'OWNER')
+        );
 
         IF EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'suppliers' AND policyname = 'tenant_isolation_suppliers') THEN
           DROP POLICY tenant_isolation_suppliers ON suppliers;

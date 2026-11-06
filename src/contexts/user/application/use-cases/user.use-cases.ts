@@ -102,6 +102,34 @@ export class CreateUserUseCase {
   }
 }
 
+export interface UserResponse {
+  readonly id: string;
+  readonly fullName: string;
+  readonly email: string;
+  readonly phone: string | null;
+  readonly documentType: string;
+  readonly documentNumber: string;
+  readonly role: string;
+  readonly isActive: boolean;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}
+
+function mapUserRowToResponse(row: UserRow): UserResponse {
+  return {
+    id: row.id,
+    fullName: row.full_name,
+    email: row.email,
+    phone: row.phone,
+    documentType: row.document_type,
+    documentNumber: row.document_number,
+    role: row.role,
+    isActive: row.is_active,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 @Injectable()
 export class ListUsersUseCase {
   constructor(
@@ -112,8 +140,9 @@ export class ListUsersUseCase {
   async execute(
     tenantId: string,
     filters: UserFilters,
-  ): Promise<UserRow[]> {
-    return this.userRepository.findAll(tenantId, filters);
+  ): Promise<UserResponse[]> {
+    const rows = await this.userRepository.findAll(tenantId, filters);
+    return rows.map(mapUserRowToResponse);
   }
 }
 
@@ -124,12 +153,12 @@ export class GetUserUseCase {
     private readonly userRepository: UserRepositoryPort,
   ) {}
 
-  async execute(id: string, tenantId: string): Promise<UserRow> {
+  async execute(id: string, tenantId: string): Promise<UserResponse> {
     const user = await this.userRepository.findOne(id, tenantId);
     if (!user) {
       throw new UserNotFoundException(id);
     }
-    return user;
+    return mapUserRowToResponse(user);
   }
 }
 
@@ -143,7 +172,7 @@ export class UpdateUserProfileUseCase {
     private readonly getTenant: GetTenantUseCase,
   ) {}
 
-  async execute(command: UpdateUserProfileCommand): Promise<UserRow> {
+  async execute(command: UpdateUserProfileCommand): Promise<UserResponse> {
     const user = await this.userRepository.findById(command.id);
     if (!user) {
       throw new UserNotFoundException(command.id);
@@ -189,7 +218,7 @@ export class UpdateUserProfileUseCase {
     if (!updated) {
       throw new UserNotFoundException(command.id);
     }
-    return updated;
+    return mapUserRowToResponse(updated);
   }
 }
 

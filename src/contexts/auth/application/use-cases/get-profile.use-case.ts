@@ -6,8 +6,13 @@ import type { TenantRepositoryPort } from '../../../tenant/domain/ports/tenant-r
 import { UserNotFoundException } from '../../../user/domain/exceptions/user.exceptions.js';
 
 export interface UserProfile {
+  readonly email: string;
   readonly fullName: string;
+  readonly phone: string | null;
+  readonly documentType: string;
+  readonly documentNumber: string;
   readonly role: string;
+  readonly isActive: boolean;
   readonly tenantName: string | null;
   readonly tenantId?: string;
 }
@@ -36,8 +41,13 @@ export class GetProfileUseCase {
     }
 
     const profile: UserProfile = {
+      email: user.email,
       fullName: user.full_name,
+      phone: user.phone ?? null,
+      documentType: user.document_type,
+      documentNumber: user.document_number,
       role: user.role,
+      isActive: user.is_active,
       tenantName: tenant?.businessName ?? null,
     };
 

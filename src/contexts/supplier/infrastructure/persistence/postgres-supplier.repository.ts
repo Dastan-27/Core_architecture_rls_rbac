@@ -9,7 +9,6 @@ import type {
 import { Supplier } from '../../domain/models/supplier.entity.js';
 import type { PaginatedResult } from '../../../../shared/domain/pagination.js';
 import { buildPaginationMeta, paginationOffset } from '../../../../shared/domain/pagination.js';
-import { RlsContext } from '../../../../shared/infrastructure/persistence/rls/rls.context.js';
 
 @Injectable()
 export class PostgresSupplierRepository
@@ -81,10 +80,6 @@ export class PostgresSupplierRepository
   }
 
   async save(supplier: Supplier): Promise<Supplier> {
-    const qr = RlsContext.getQueryRunner();
-    if (qr) {
-      await qr.query("SET LOCAL app.bypass_rls = 'on'");
-    }
     await this.queryFn(
       `INSERT INTO suppliers (
         id, tenant_id, nit_rut, business_name, trade_name,

@@ -103,7 +103,7 @@ export class UsersController {
     const fullName = `${dto.firstName} ${dto.lastName}`.trim();
     const passwordHash = await this.passwordHasher.hash(dto.password);
 
-    return this.createUser.execute({
+    const user = await this.createUser.execute({
       tenantId: targetTenantId,
       documentType: dto.documentType,
       documentNumber: dto.documentNumber,
@@ -114,6 +114,9 @@ export class UsersController {
       role: dto.role as Role,
       requesterRole: req.user.role as Role,
     });
+
+    const { passwordHash: _omit, ...safeUser } = user;
+    return safeUser;
   }
 
   @ApiOperation({
