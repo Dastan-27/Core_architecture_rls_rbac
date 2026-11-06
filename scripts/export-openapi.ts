@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, type InjectionToken } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as fs from 'fs';
@@ -55,7 +55,7 @@ import { AssignRoleUseCase } from '../src/contexts/rbac/application/use-cases/as
 import { GetUserAuditTrailUseCase } from '../src/contexts/audit/application/use-cases/get-user-audit-trail.use-case.js';
 import { HealthService } from '../src/shared/infrastructure/http/health/health.service.js';
 
-const dummyProvider = (provide: any) => ({
+const dummyProvider = (provide: InjectionToken) => ({
   provide,
   useValue: new Proxy({}, {
     get: (_target, prop) => {

@@ -7,6 +7,8 @@ import {
   IsOptional,
   Length,
   IsUUID,
+  IsBoolean,
+  MinLength,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -31,10 +33,14 @@ export class CreateUserDto {
   email: string;
 
   @ApiProperty({
-    description: 'Contraseña del usuario',
+    description: 'Contraseña del usuario (mínimo 8 caracteres, mayúscula, minúscula, número y caracter especial)',
     example: 'Password123*',
   })
   @IsString()
+  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/, {
+    message: 'La contraseña debe contener al menos una mayúscula, una minúscula, un número y un caracter especial',
+  })
   password: string;
 
   @ApiProperty({
@@ -126,15 +132,20 @@ export class UpdateUserProfileDto {
 
 export class UpdateUserStatusDto {
   @ApiProperty({ description: 'Estado activo/inactivo', example: false })
+  @IsBoolean({ message: 'isActive debe ser un booleano' })
   isActive: boolean;
 }
 
 export class ResetPasswordDto {
   @ApiProperty({
-    description: 'Nueva contraseña',
+    description: 'Nueva contraseña (mínimo 8 caracteres, mayúscula, minúscula, número y caracter especial)',
     example: 'NuevaPassword123*',
   })
   @IsString()
+  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/, {
+    message: 'La contraseña debe contener al menos una mayúscula, una minúscula, un número y un caracter especial',
+  })
   newPassword: string;
 }
 

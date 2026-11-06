@@ -45,8 +45,9 @@ export class PostgresSupplierRepository
     const params: unknown[] = [tenantId];
 
     if (filters.search) {
-      params.push(`%${filters.search}%`);
-      whereSql += ` AND (s.business_name ILIKE $${params.length} OR s.trade_name ILIKE $${params.length})`;
+      const sanitized = filters.search.replace(/[%_\\]/g, '\\$&');
+      params.push(`%${sanitized}%`);
+      whereSql += ` AND (s.business_name ILIKE $${params.length} ESCAPE '\\' OR s.trade_name ILIKE $${params.length} ESCAPE '\\')`;
     }
 
     if (filters.isActive !== undefined) {
